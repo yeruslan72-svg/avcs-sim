@@ -18,7 +18,6 @@ st.set_page_config(
 # ------------------------------
 # Стили CSS
 # ------------------------------
-st.markdown("""
 <style>
     .stApp {
         background-color: #f8f9fa;
@@ -33,11 +32,18 @@ st.markdown("""
     }
     .pillar-card {
         background-color: white;
+        color: #000000;
         padding: 1.5rem;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         margin-bottom: 1rem;
         border-left: 4px solid #1e3a8a;
+    }
+    .pillar-card h2 {
+        color: #1e3a8a;
+    }
+    .pillar-card p {
+        color: #4b5563;
     }
     .score-box {
         background-color: #1e3a8a;
@@ -59,6 +65,12 @@ st.markdown("""
     }
     .stButton button:hover {
         background-color: #3b82f6;
+    }
+    .stRadio label {
+        color: #000000 !important;
+    }
+    .stRadio div {
+        color: #000000 !important;
     }
 </style>
 """, unsafe_allow_html=True)
