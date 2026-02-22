@@ -104,12 +104,12 @@ with st.sidebar:
         st.markdown("### Current Scores")
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("Trigger", st.session_state.scores['trigger_clarity'], max=5)
-            st.metric("Ownership", st.session_state.scores['decision_ownership'], max=5)
-            st.metric("Intervention", st.session_state.scores['protected_intervention'], max=5)
+            st.metric("Trigger", st.session_state.scores['trigger_clarity'])
+            st.metric("Ownership", st.session_state.scores['decision_ownership'])
+            st.metric("Intervention", st.session_state.scores['protected_intervention'])
         with col2:
-            st.metric("Override", st.session_state.scores['override_transparency'], max=5)
-            st.metric("Drift", st.session_state.scores['drift_detection'], max=5)
+            st.metric("Override", st.session_state.scores['override_transparency'])
+            st.metric("Drift", st.session_state.scores['drift_detection'])
 
 # ------------------------------
 # Функции для расчёта скоров
