@@ -16,51 +16,62 @@ st.set_page_config(
 )
 
 # ------------------------------
-# Стили CSS
+# Стили CSS (исправлено: rem → px)
 # ------------------------------
+st.markdown("""
 <style>
     .stApp {
         background-color: #f8f9fa;
     }
     .main-header {
         text-align: center;
-        padding: 2rem 0;
+        padding: 20px 0;
         background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
         color: white;
         border-radius: 10px;
-        margin-bottom: 2rem;
+        margin-bottom: 20px;
+    }
+    .main-header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    .main-header p {
+        font-size: 18px;
     }
     .pillar-card {
         background-color: white;
         color: #000000;
-        padding: 1.5rem;
+        padding: 20px;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 1rem;
+        margin-bottom: 15px;
         border-left: 4px solid #1e3a8a;
     }
     .pillar-card h2 {
         color: #1e3a8a;
+        margin-top: 0;
+        margin-bottom: 10px;
     }
     .pillar-card p {
         color: #4b5563;
+        margin-bottom: 0;
     }
     .score-box {
         background-color: #1e3a8a;
         color: white;
-        padding: 2rem;
+        padding: 20px;
         border-radius: 10px;
         text-align: center;
-        font-size: 3rem;
+        font-size: 48px;
         font-weight: bold;
-        margin: 1rem 0;
+        margin: 15px 0;
     }
     .stButton button {
         background-color: #1e3a8a;
         color: white;
         font-weight: bold;
         border-radius: 5px;
-        padding: 0.5rem 2rem;
+        padding: 8px 20px;
         border: none;
     }
     .stButton button:hover {
@@ -68,9 +79,13 @@ st.set_page_config(
     }
     .stRadio label {
         color: #000000 !important;
+        font-size: 16px;
     }
     .stRadio div {
         color: #000000 !important;
+    }
+    .stMarkdown {
+        color: #000000;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -81,7 +96,7 @@ st.set_page_config(
 st.markdown("""
 <div class="main-header">
     <h1>🧭 AVCS Structural Integrity Module</h1>
-    <p style="font-size: 1.2rem;">Diagnosing decision architecture before failure, not after</p>
+    <p>Diagnosing decision architecture before failure, not after</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -277,19 +292,19 @@ def create_pdf(scores, total_score):
 # Шаг 1: Введение
 if st.session_state.step == 1:
     st.markdown("""
-    <div style="background-color: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div style="background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <h2>Welcome to the AVCS Structural Integrity Module</h2>
-        <p style="font-size: 1.1rem; line-height: 1.6;">
+        <p style="font-size: 16px; line-height: 1.6;">
         This diagnostic tool evaluates your organization's decision architecture across five critical pillars.
         </p>
-        <p style="font-size: 1.1rem; line-height: 1.6;">
+        <p style="font-size: 16px; line-height: 1.6;">
         <strong>Deepwater Horizon scored 3/25.</strong> Not because of engineering failure, 
         but because structural decision weaknesses were embedded long before the explosion.
         </p>
-        <p style="font-size: 1.1rem; line-height: 1.6;">
+        <p style="font-size: 16px; line-height: 1.6;">
         The assessment takes 5-10 minutes. You'll receive:
         </p>
-        <ul style="font-size: 1.1rem; line-height: 1.8;">
+        <ul style="font-size: 16px; line-height: 1.8;">
             <li>Structural Integrity Score (0-25)</li>
             <li>Visual radar chart of your five pillars</li>
             <li>PDF report with recommendations</li>
@@ -307,8 +322,8 @@ if st.session_state.step == 1:
 elif st.session_state.step == 2:
     st.markdown("""
     <div class="pillar-card">
-        <h2 style="color: #1e3a8a;">1. Trigger Clarity</h2>
-        <p style="font-size: 1rem; color: #666;">Are escalation conditions mandatory or interpretive?</p>
+        <h2>1. Trigger Clarity</h2>
+        <p>Are escalation conditions mandatory or interpretive?</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -345,8 +360,8 @@ elif st.session_state.step == 2:
 elif st.session_state.step == 3:
     st.markdown("""
     <div class="pillar-card">
-        <h2 style="color: #1e3a8a;">2. Decision Ownership</h2>
-        <p style="font-size: 1rem; color: #666;">Is accountability singular and real-time?</p>
+        <h2>2. Decision Ownership</h2>
+        <p>Is accountability singular and real-time?</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -381,8 +396,8 @@ elif st.session_state.step == 3:
 elif st.session_state.step == 4:
     st.markdown("""
     <div class="pillar-card">
-        <h2 style="color: #1e3a8a;">3. Protected Intervention</h2>
-        <p style="font-size: 1rem; color: #666;">Is stopping operations structurally safe?</p>
+        <h2>3. Protected Intervention</h2>
+        <p>Is stopping operations structurally safe?</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -417,8 +432,8 @@ elif st.session_state.step == 4:
 elif st.session_state.step == 5:
     st.markdown("""
     <div class="pillar-card">
-        <h2 style="color: #1e3a8a;">4. Override Transparency</h2>
-        <p style="font-size: 1rem; color: #666;">Are deviations visible and traceable?</p>
+        <h2>4. Override Transparency</h2>
+        <p>Are deviations visible and traceable?</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -453,8 +468,8 @@ elif st.session_state.step == 5:
 elif st.session_state.step == 6:
     st.markdown("""
     <div class="pillar-card">
-        <h2 style="color: #1e3a8a;">5. Drift Detection</h2>
-        <p style="font-size: 1rem; color: #666;">Is boundary movement tracked or ignored?</p>
+        <h2>5. Drift Detection</h2>
+        <p>Is boundary movement tracked or ignored?</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -509,7 +524,7 @@ elif st.session_state.step == 7:
     
     # Заголовок
     st.markdown(f"""
-    <div style="text-align: center; margin-bottom: 2rem;">
+    <div style="text-align: center; margin-bottom: 20px;">
         <h1 style="color: #1e3a8a;">Your Structural Integrity Results</h1>
     </div>
     """, unsafe_allow_html=True)
@@ -524,7 +539,7 @@ elif st.session_state.step == 7:
         """, unsafe_allow_html=True)
         
         st.markdown(f"""
-        <div style="text-align: center; padding: 1rem; background-color: white; border-radius: 10px; margin-bottom: 2rem;">
+        <div style="text-align: center; padding: 15px; background-color: white; border-radius: 10px; margin-bottom: 20px;">
             <h3 style="color: {color};">{classification}</h3>
             <p>{message}</p>
         </div>
@@ -555,7 +570,7 @@ elif st.session_state.step == 7:
         
         for idx, row in scores_df.iterrows():
             st.markdown(f"""
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between;">
                     <span><strong>{row['Pillar']}</strong></span>
                     <span>{row['Score']}/5</span>
@@ -578,14 +593,14 @@ elif st.session_state.step == 7:
     
     if weak_pillars:
         st.markdown(f"""
-        <div style="background-color: #fee2e2; padding: 1rem; border-radius: 10px; border-left: 4px solid #dc2626;">
+        <div style="background-color: #fee2e2; padding: 15px; border-radius: 10px; border-left: 4px solid #dc2626;">
             <strong>⚠️ Priority areas:</strong> Your weakest pillars are: {', '.join(weak_pillars)}. 
             These represent the highest structural vulnerability.
         </div>
         """, unsafe_allow_html=True)
     
     st.markdown("""
-    <div style="background-color: #e6f7ff; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+    <div style="background-color: #e6f7ff; padding: 15px; border-radius: 10px; margin-top: 10px;">
         <strong>💡 Note:</strong> This diagnostic identifies structural conditions. A full SIM audit includes 
         field interviews, document review, and detailed reinforcement planning.
     </div>
@@ -599,7 +614,7 @@ elif st.session_state.step == 7:
     with col1:
         # PDF Report
         pdf_data = create_pdf(st.session_state.scores, total_score)
-        href = f'<a href="data:application/octet-stream;base64,{pdf_data}" download="AVCS_SIM_Report.pdf"><button style="background-color: #1e3a8a; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer;">📥 Download PDF Report</button></a>'
+        href = f'<a href="data:application/octet-stream;base64,{pdf_data}" download="AVCS_SIM_Report.pdf"><button style="background-color: #1e3a8a; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">📥 Download PDF Report</button></a>'
         st.markdown(href, unsafe_allow_html=True)
     
     with col2:
@@ -612,7 +627,7 @@ elif st.session_state.step == 7:
     with col3:
         st.markdown("""
         <a href="https://www.linkedin.com/in/yeruslan-chihachyov-70a807126" target="_blank">
-            <button style="background-color: #0a66c2; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
+            <button style="background-color: #0a66c2; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
             📞 Request Full Audit
             </button>
         </a>
