@@ -302,7 +302,7 @@ def create_pdf(scores, total_score):
     pdf.cell(0, 10, '© 2026 Yeruslan Chihachyov, Operational Excellence Delivered Consulting', 0, 1, 'C')
     
     # Сохраняем PDF в строку
-    pdf_output = pdf.output(dest='S').encode('latin1')
+    pdf_output = pdf.output(dest='S').encode('utf-8')
     return base64.b64encode(pdf_output).decode('latin1')
 # ------------------------------
 # Основное приложение - по шагам
