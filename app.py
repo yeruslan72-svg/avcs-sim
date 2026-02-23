@@ -250,6 +250,7 @@ def create_pdf(scores, total_score):
     # Общий скор
     pdf.set_font('Arial', 'B', 12)
     pdf.cell(0, 10, f'Total Structural Integrity Score: {total_score} / 25', 0, 1)
+    pdf.ln(5)
     
     # Классификация
     if total_score <= 10:
@@ -283,7 +284,13 @@ def create_pdf(scores, total_score):
     
     pdf.ln(10)
     
-    # Сохраняем PDF в строку
+    # Нижний колонтитул
+    pdf.set_y(-30)
+    pdf.set_font('Arial', 'I', 8)
+    pdf.cell(0, 10, 'AVCS Structural Integrity Module', 0, 1, 'C')
+    pdf.cell(0, 10, '© 2026 Yeruslan Chihachyov', 0, 1, 'C')
+    
+    # Сохраняем PDF в строку (используем utf-8)
     pdf_output = pdf.output(dest='S').encode('utf-8')
     return base64.b64encode(pdf_output).decode('utf-8')
 # ------------------------------
