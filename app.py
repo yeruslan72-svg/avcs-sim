@@ -120,7 +120,7 @@ if 'answers' not in st.session_state:
 # Боковая панель с прогрессом
 # ------------------------------
 with st.sidebar:
-    st.image("https://raw.githubusercontent.com/Yeruslan/avcs-sim/main/logo.png", width=200)
+    st.image(logo.png", width=200)
     st.markdown("## Progress")
     progress = (st.session_state.step - 1) / 6
     st.progress(progress)
