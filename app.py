@@ -237,20 +237,31 @@ def create_pdf(scores, total_score):
     pdf = FPDF()
     pdf.add_page()
     
+    # Добавляем логотип в верхний колонтитул
+    try:
+        pdf.image("logo.png", x=10, y=8, w=30)
+    except:
+        pass  # Если логотип не найден, продолжаем без него
+    
     # Заголовок
     pdf.set_font('Arial', 'B', 16)
+    pdf.ln(15)  # Отступ после логотипа
     pdf.cell(0, 10, 'AVCS Structural Integrity Module Report', 0, 1, 'C')
-    pdf.ln(10)
+    pdf.ln(5)
     
     # Дата
     pdf.set_font('Arial', '', 10)
     pdf.cell(0, 10, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1, 'R')
     pdf.ln(10)
     
+    # Информация о компании
+    pdf.set_font('Arial', 'I', 11)
+    pdf.cell(0, 10, 'Operational Excellence Delivered Consulting', 0, 1, 'C')
+    pdf.ln(10)
+    
     # Общий скор
     pdf.set_font('Arial', 'B', 12)
     pdf.cell(0, 10, f'Total Structural Integrity Score: {total_score} / 25', 0, 1)
-    pdf.ln(5)
     
     # Классификация
     if total_score <= 10:
@@ -284,15 +295,15 @@ def create_pdf(scores, total_score):
     
     pdf.ln(10)
     
-    # Нижний колонтитул
+    # Добавляем нижний колонтитул с контактами
     pdf.set_y(-30)
     pdf.set_font('Arial', 'I', 8)
-    pdf.cell(0, 10, 'AVCS Structural Integrity Module', 0, 1, 'C')
-    pdf.cell(0, 10, '© 2026 Yeruslan Chihachyov', 0, 1, 'C')
+    pdf.cell(0, 10, 'AVCS Structural Integrity Module — avcs-sim.streamlit.app', 0, 1, 'C')
+    pdf.cell(0, 10, '© 2026 Yeruslan Chihachyov, Operational Excellence Delivered Consulting', 0, 1, 'C')
     
-    # Сохраняем PDF в строку (используем utf-8)
-    pdf_output = pdf.output(dest='S').encode('utf-8')
-    return base64.b64encode(pdf_output).decode('utf-8')
+    # Сохраняем PDF в строку
+    pdf_output = pdf.output(dest='S').encode('latin1')
+    return base64.b64encode(pdf_output).decode('latin1')
 # ------------------------------
 # Основное приложение - по шагам
 # ------------------------------
