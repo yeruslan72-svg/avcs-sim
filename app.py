@@ -304,6 +304,7 @@ def create_pdf(scores, total_score):
     # Сохраняем PDF в строку
     pdf_output = pdf.output(dest='S').encode('latin1')
     return base64.b64encode(pdf_output).decode('latin1')
+    
 # ------------------------------
 # Основное приложение - по шагам
 # ------------------------------
