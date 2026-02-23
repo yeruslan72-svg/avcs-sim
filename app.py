@@ -120,7 +120,7 @@ if 'answers' not in st.session_state:
 # Боковая панель с прогрессом
 # ------------------------------
 with st.sidebar:
-    st.image("logo.png", width=200)
+    st.image("https://via.placeholder.com/200x100/1e3a8a/ffffff?text=AVCS", use_column_width=True)
     st.markdown("## Progress")
     progress = (st.session_state.step - 1) / 6
     st.progress(progress)
@@ -237,26 +237,14 @@ def create_pdf(scores, total_score):
     pdf = FPDF()
     pdf.add_page()
     
-    # Добавляем логотип в верхний колонтитул
-    try:
-        pdf.image("logo.png", x=10, y=8, w=30)
-    except:
-        pass  # Если логотип не найден, продолжаем без него
-    
     # Заголовок
     pdf.set_font('Arial', 'B', 16)
-    pdf.ln(15)  # Отступ после логотипа
     pdf.cell(0, 10, 'AVCS Structural Integrity Module Report', 0, 1, 'C')
-    pdf.ln(5)
+    pdf.ln(10)
     
     # Дата
     pdf.set_font('Arial', '', 10)
     pdf.cell(0, 10, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1, 'R')
-    pdf.ln(10)
-    
-    # Информация о компании
-    pdf.set_font('Arial', 'I', 11)
-    pdf.cell(0, 10, 'Operational Excellence Delivered Consulting', 0, 1, 'C')
     pdf.ln(10)
     
     # Общий скор
@@ -293,18 +281,10 @@ def create_pdf(scores, total_score):
     for name, score in pillars:
         pdf.cell(0, 10, f'{name}: {score}/5', 0, 1)
     
-    pdf.ln(10)
-    
-    # Добавляем нижний колонтитул с контактами
-    pdf.set_y(-30)
-    pdf.set_font('Arial', 'I', 8)
-    pdf.cell(0, 10, 'AVCS Structural Integrity Module — avcs-sim.streamlit.app', 0, 1, 'C')
-    pdf.cell(0, 10, '© 2026 Yeruslan Chihachyov, Operational Excellence Delivered Consulting', 0, 1, 'C')
-    
     # Сохраняем PDF в строку
     pdf_output = pdf.output(dest='S').encode('latin1')
     return base64.b64encode(pdf_output).decode('latin1')
-    
+
 # ------------------------------
 # Основное приложение - по шагам
 # ------------------------------
