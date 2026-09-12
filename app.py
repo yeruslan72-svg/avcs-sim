@@ -418,10 +418,12 @@ def create_radar_image(scores, filename="radar_temp.png"):
 
 
 # ------------------------------
-# PDF report (v1.4)
+# PDF report (v1.4.1 — fpdf2 safe)
 # ------------------------------
 def create_pdf(scores, total_score, justifications):
     pdf = AVCSFPDF()
+    pdf.set_margins(10, 10, 10)
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
     report_id = generate_report_id()
@@ -433,19 +435,24 @@ def create_pdf(scores, total_score, justifications):
         pass
 
     # --- HEADER ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 20)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 12, 'AVCS Structural Integrity Report', 0, 1, 'C')
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'I', 10)
     pdf.set_text_color(75, 85, 99)
     pdf.cell(0, 6, 'SIM Lite v1.4 - Adaptive Vector Control System', 0, 1, 'C')
     pdf.ln(4)
 
     # --- METADATA ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(75, 85, 99)
     pdf.cell(0, 5, f'Report ID: {report_id}', 0, 1)
+    pdf.set_x(10)
     pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1)
+    pdf.set_x(10)
     pdf.cell(0, 5, 'Assessed by: SIM Lite v1.4 (automated diagnostic)', 0, 1)
     pdf.ln(6)
 
@@ -463,18 +470,22 @@ def create_pdf(scores, total_score, justifications):
         classification = "ARCHITECTURALLY RESILIENT"
         color = (16, 185, 129)
 
+    pdf.set_x(10)
     pdf.set_text_color(*color)
     pdf.set_font('Helvetica', 'B', 28)
     pdf.cell(0, 15, f'{total_score} / 25', 0, 1, 'C')
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 14)
     pdf.cell(0, 10, classification, 0, 1, 'C')
     pdf.set_text_color(0, 0, 0)
     pdf.ln(6)
 
     # --- EXECUTIVE SUMMARY ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Executive Summary', 0, 1)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(31, 41, 55)
     summary = generate_executive_summary(total_score, scores, justifications)
@@ -482,20 +493,24 @@ def create_pdf(scores, total_score, justifications):
     pdf.ln(6)
 
     # --- RADAR CHART ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Structural Profile', 0, 1)
     try:
         radar_file = create_radar_image(scores)
-        pdf.image(radar_file, x=55, y=pdf.get_y(), w=100)
-        pdf.ln(105)
+        chart_y = pdf.get_y()
+        pdf.image(radar_file, x=55, y=chart_y, w=100)
+        pdf.set_y(chart_y + 105)
     except Exception as e:
+        pdf.set_x(10)
         pdf.set_font('Helvetica', 'I', 9)
         pdf.set_text_color(138, 138, 138)
-        pdf.cell(0, 6, f'(Radar chart unavailable: {e})', 0, 1)
+        pdf.cell(0, 6, f'(Radar chart unavailable)', 0, 1)
     pdf.ln(4)
 
     # --- PILLAR SCORES ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Pillar Scores and Justifications', 0, 1)
@@ -510,9 +525,11 @@ def create_pdf(scores, total_score, justifications):
     ]
 
     for name, score, just in pillars:
+        pdf.set_x(10)
         pdf.set_font('Helvetica', 'B', 11)
         pdf.set_text_color(30, 58, 138)
         pdf.cell(0, 7, f'{name}: {score}/5', 0, 1)
+        pdf.set_x(10)
         pdf.set_font('Helvetica', '', 10)
         pdf.set_text_color(31, 41, 55)
         pdf.multi_cell(0, 5, just)
@@ -520,6 +537,7 @@ def create_pdf(scores, total_score, justifications):
 
     # --- VULNERABILITY MAP ---
     pdf.add_page()
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Structural Vulnerability Map', 0, 1)
@@ -532,14 +550,17 @@ def create_pdf(scores, total_score, justifications):
     ]
 
     if not weak_pillars:
+        pdf.set_x(10)
         pdf.set_font('Helvetica', 'I', 10)
         pdf.set_text_color(31, 41, 55)
         pdf.multi_cell(0, 6, "No critical vulnerabilities identified. All pillars score above 3/5.")
     else:
         for i, (name, score, just) in enumerate(weak_pillars, 1):
+            pdf.set_x(10)
             pdf.set_font('Helvetica', 'B', 11)
             pdf.set_text_color(220, 38, 38)
             pdf.cell(0, 7, f'Priority {i}: {name} ({score}/5)', 0, 1)
+            pdf.set_x(10)
             pdf.set_font('Helvetica', '', 10)
             pdf.set_text_color(31, 41, 55)
             pdf.multi_cell(0, 5, just)
@@ -547,45 +568,55 @@ def create_pdf(scores, total_score, justifications):
 
     # --- RISK FORECAST ---
     pdf.ln(4)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Structural Risk Forecast', 0, 1)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(31, 41, 55)
     pdf.multi_cell(0, 6,
-                   "If no corrective action is taken, the system is most likely to fail through:")
-    pdf.ln(2)
-    pdf.multi_cell(0, 6, "1. Escalation delay - signals visible but not acted upon.")
-    pdf.multi_cell(0, 6, "2. Override normalization - deviations logged but not audited.")
-    pdf.multi_cell(0, 6, "3. Ownership diffusion - responsibility diluted under pressure.")
+                   "If no corrective action is taken, the system is most likely to fail through:\n\n"
+                   "1. Escalation delay - signals visible but not acted upon.\n"
+                   "2. Override normalization - deviations logged but not audited.\n"
+                   "3. Ownership diffusion - responsibility diluted under pressure.")
     pdf.ln(4)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'I', 10)
     pdf.multi_cell(0, 6, 'Not "if an incident happens." But how.')
     pdf.ln(4)
 
     # --- REINFORCEMENT PLAN ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Priority Reinforcement Plan', 0, 1)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(31, 41, 55)
 
     if weak_pillars:
         for i, (name, score, just) in enumerate(weak_pillars[:3], 1):
+            pdf.set_x(10)
             pdf.set_font('Helvetica', 'B', 10)
             pdf.cell(0, 6, f'{i}. {name}', 0, 1)
+            pdf.set_x(10)
             pdf.set_font('Helvetica', '', 10)
             pdf.multi_cell(0, 5, f'   Objective: Address weakness (current score: {score}/5).')
+            pdf.set_x(10)
             pdf.multi_cell(0, 5, f'   Timeline: {30 * i} days.')
             pdf.ln(2)
     else:
+        pdf.set_x(10)
         pdf.multi_cell(0, 6, 'No priority actions required. Maintain current structural integrity.')
 
     # --- EVIDENCE APPENDIX ---
     pdf.add_page()
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Evidence Appendix', 0, 1)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'I', 9)
     pdf.set_text_color(138, 138, 138)
     pdf.multi_cell(0, 5,
@@ -594,29 +625,37 @@ def create_pdf(scores, total_score, justifications):
     pdf.ln(4)
 
     for name, score, just in pillars:
+        pdf.set_x(10)
         pdf.set_font('Helvetica', 'B', 11)
         pdf.set_text_color(30, 58, 138)
         pdf.cell(0, 7, f'{name}', 0, 1)
+        pdf.set_x(10)
         pdf.set_font('Helvetica', '', 10)
         pdf.set_text_color(31, 41, 55)
-        pdf.multi_cell(0, 5, f'Score: {score}/5')
-        pdf.multi_cell(0, 5, f'Evidence: Self-reported')
-        pdf.multi_cell(0, 5, f'Full audit recommended for evidence verification.')
+        pdf.multi_cell(0, 5,
+                       f'Score: {score}/5\n'
+                       f'Evidence: Self-reported\n'
+                       f'Full audit recommended for evidence verification.')
         pdf.ln(2)
 
     # --- BENCHMARKS ---
     pdf.ln(4)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Benchmarks', 0, 1)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(31, 41, 55)
     pdf.cell(0, 6, 'Deepwater Horizon: 3/25 - High Structural Vulnerability', 0, 1)
+    pdf.set_x(10)
     pdf.cell(0, 6, 'Bhopal: 4/25 - High Structural Vulnerability', 0, 1)
+    pdf.set_x(10)
     pdf.cell(0, 6, 'Industry average (estimated): 12/25 - Conditional Stability', 0, 1)
     pdf.ln(6)
 
     # --- DISCLAIMER ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'I', 9)
     pdf.set_text_color(75, 85, 99)
     pdf.multi_cell(0, 5,
@@ -625,33 +664,40 @@ def create_pdf(scores, total_score, justifications):
                    'AI may assist; human judgment remains binding.')
     pdf.ln(4)
 
+    pdf.set_x(10)
     pdf.multi_cell(0, 5,
                    'AVCS - Adaptive Vector Control System. '
                    'Charter v1.1 / CORE v2.1 / Code of Ethics v1.1 / Code of Practice v1.1.')
     pdf.ln(4)
 
     # --- QUOTE ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'I', 10)
     pdf.set_text_color(30, 58, 138)
     pdf.multi_cell(0, 6,
                    '"Continuation without control is a managed risk - not a controlled one."')
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(75, 85, 99)
     pdf.cell(0, 5, '- AVCS CORE v2.1', 0, 1)
     pdf.ln(6)
 
     # --- LINKS ---
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 6, 'Full AVCS documentation:', 0, 1)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(31, 41, 55)
     pdf.multi_cell(0, 5,
                    'https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs')
     pdf.ln(2)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 10)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 6, 'System Navigator:', 0, 1)
+    pdf.set_x(10)
     pdf.set_font('Helvetica', '', 9)
     pdf.set_text_color(31, 41, 55)
     pdf.multi_cell(0, 5,
