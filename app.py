@@ -2,10 +2,21 @@
 AVCS STRUCTURAL INTEGRITY MODULE (SIM) — LITE
 Diagnostic Instrument for Decision Architecture
 
-Version: 1.1
+Version: 1.2
 Companion Documents: Charter v1.1, CORE v2.1, Code of Ethics v1.1,
                     Code of Practice v1.1, SIM v1.1
 License: CC BY-NC-ND 4.0
+
+Changelog v1.2:
+- 15 → 20 questions
+- 6 questions reformulated (removed negative polarity, aligned with SIM v1.1)
+- 5 new questions added:
+  * Q3.4 Operator Fitness Protection (Ethics 13, HPSM 4)
+  * Q3.5 Evidence Before Status (Charter 4.3, CORE 21)
+  * Q4.4 Controlled Degradation (Practice 4)
+  * Q4.5 Evidence Before Status (Charter 4.3, CORE 21)
+  * Q5.4 Evidence Before Status (Charter 4.3, CORE 21)
+- Sidebar: "Step X of 5" (questions only)
 """
 
 import streamlit as st
@@ -102,6 +113,13 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         margin-bottom: 20px;
     }
+    .evidence-box {
+        background-color: #fef3c7;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 4px solid #d97706;
+        margin: 10px 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -131,18 +149,19 @@ for key, value in defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
 
+
 # ------------------------------
 # Функции для расчёта скоров
 # ------------------------------
 def calculate_trigger_score(answers):
     score = 0
-    if answers.get('q1_1') == "Yes, mandatory and enforced": score += 2
-    elif answers.get('q1_1') == "Yes, but discretionary": score += 1
+    if answers.get('q1_1') == "Mandatory and enforced": score += 2
+    elif answers.get('q1_1') == "Defined but discretionary": score += 1
 
-    if answers.get('q1_2') == "No, all deviations tracked": score += 2
+    if answers.get('q1_2') == "Yes, systematically tracked": score += 2
     elif answers.get('q1_2') == "Sometimes noticed": score += 1
 
-    if answers.get('q1_3') == "Automatic": score += 1
+    if answers.get('q1_3') == "Automatic (mandatory)": score += 1
     return min(score, 5)
 
 
@@ -154,43 +173,71 @@ def calculate_ownership_score(answers):
     if answers.get('q2_2') == "Yes, always present": score += 2
     elif answers.get('q2_2') == "Usually present": score += 1
 
-    if answers.get('q2_3') == "No, never": score += 1
+    if answers.get('q2_3') == "Yes, always": score += 1
     return min(score, 5)
 
 
 def calculate_intervention_score(answers):
     score = 0
+    # Q3.1
     if answers.get('q3_1') == "Yes, formally codified and protected": score += 2
     elif answers.get('q3_1') == "Yes, but informally": score += 1
 
+    # Q3.2
     if answers.get('q3_2') == "Always supported": score += 2
     elif answers.get('q3_2') == "Usually supported": score += 1
 
+    # Q3.3
     if answers.get('q3_3') == "No, never": score += 1
+
+    # Q3.4 — Operator Fitness (new)
+    if answers.get('q3_4') == "Yes, formally codified and protected": score += 2
+    elif answers.get('q3_4') == "Yes, but informal": score += 1
+
+    # Q3.5 — Evidence (new)
+    if answers.get('q3_5') == "Yes, evidence exists (records, logs, procedures)": score += 1
+
     return min(score, 5)
 
 
 def calculate_override_score(answers):
     score = 0
-    if answers.get('q4_1') == "No, always documented": score += 2
-    elif answers.get('q4_1') == "Sometimes documented": score += 1
+    # Q4.1
+    if answers.get('q4_1') == "Yes, always": score += 2
+    elif answers.get('q4_1') == "Sometimes": score += 1
 
+    # Q4.2
     if answers.get('q4_2') == "Yes, always": score += 2
     elif answers.get('q4_2') == "Sometimes": score += 1
 
+    # Q4.3
     if answers.get('q4_3') == "Yes, regularly": score += 1
+
+    # Q4.4 — Controlled Degradation (new)
+    if answers.get('q4_4') == "Yes, always": score += 1
+
+    # Q4.5 — Evidence (new)
+    if answers.get('q4_5') == "Yes, evidence exists": score += 1
+
     return min(score, 5)
 
 
 def calculate_drift_score(answers):
     score = 0
+    # Q5.1
     if answers.get('q5_1') == "Yes, systematically": score += 2
     elif answers.get('q5_1') == "Sometimes": score += 1
 
+    # Q5.2
     if answers.get('q5_2') == "Yes, regularly": score += 2
     elif answers.get('q5_2') == "Occasionally": score += 1
 
+    # Q5.3
     if answers.get('q5_3') == "Yes, actively": score += 1
+
+    # Q5.4 — Evidence (new)
+    if answers.get('q5_4') == "Yes, evidence exists": score += 1
+
     return min(score, 5)
 
 
@@ -225,7 +272,7 @@ def justify_ownership(score, answers):
 
 def justify_intervention(score, answers):
     if score >= 4:
-        return "Intervention is formally protected and reviewed positively."
+        return "Intervention is formally protected and reviewed positively. Operator fitness is structurally supported."
     elif score >= 3:
         return "Intervention is formally protected, but may carry friction."
     elif score >= 2:
@@ -238,20 +285,20 @@ def justify_intervention(score, answers):
 
 def justify_override(score, answers):
     if score >= 4:
-        return "Overrides are logged, traceable, and periodically audited."
+        return "Overrides are logged, traceable, audited. Residual risk is assigned to named owner."
     elif score >= 3:
-        return "Overrides are logged with a named owner, but not audited."
+        return "Overrides are logged with a named owner, but not always audited."
     elif score >= 2:
         return "Overrides are logged but incomplete. Traceability is partial."
     elif score >= 1:
-        return "Overrides occur but are not documented."
+        return "Overrides occur but are not consistently documented."
     else:
         return "Informal override is common. Deviations leave no trace."
 
 
 def justify_drift(score, answers):
     if score >= 4:
-        return "Drift is actively monitored at supervisory level and structurally countered."
+        return "Drift is actively monitored and structurally countered. Evidence of past drift detection exists."
     elif score >= 3:
         return "Deviations are tracked and periodically reviewed."
     elif score >= 2:
@@ -300,23 +347,19 @@ def create_pdf(scores, total_score, justifications):
     pdf = FPDF()
     pdf.add_page()
 
-    # Заголовок
     pdf.set_font('Arial', 'B', 16)
     pdf.cell(0, 10, 'AVCS Structural Integrity Module Report', 0, 1, 'C')
     pdf.set_font('Arial', 'I', 10)
-    pdf.cell(0, 6, 'SIM Lite v1.1', 0, 1, 'C')
+    pdf.cell(0, 6, 'SIM Lite v1.2', 0, 1, 'C')
     pdf.ln(4)
 
-    # Дата
     pdf.set_font('Arial', '', 10)
     pdf.cell(0, 10, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1, 'R')
     pdf.ln(6)
 
-    # Общий скор
     pdf.set_font('Arial', 'B', 12)
     pdf.cell(0, 10, f'Total Structural Integrity Score: {total_score} / 25', 0, 1)
 
-    # Классификация
     if total_score <= 10:
         classification = "HIGH STRUCTURAL VULNERABILITY"
     elif total_score <= 17:
@@ -330,7 +373,6 @@ def create_pdf(scores, total_score, justifications):
     pdf.cell(0, 10, f'Classification: {classification}', 0, 1)
     pdf.ln(8)
 
-    # Детальные скоры
     pdf.set_font('Arial', 'B', 12)
     pdf.cell(0, 10, 'Pillar Scores and Justifications:', 0, 1)
     pdf.set_font('Arial', '', 11)
@@ -350,7 +392,6 @@ def create_pdf(scores, total_score, justifications):
         pdf.multi_cell(0, 6, just)
         pdf.ln(2)
 
-    # Benchmarks
     pdf.ln(4)
     pdf.set_font('Arial', 'B', 11)
     pdf.cell(0, 8, 'Benchmarks:', 0, 1)
@@ -360,7 +401,6 @@ def create_pdf(scores, total_score, justifications):
     pdf.cell(0, 6, 'Industry average (estimated): 12/25', 0, 1)
     pdf.ln(6)
 
-    # Disclaimer
     pdf.set_font('Arial', 'I', 9)
     pdf.multi_cell(0, 5, 'This diagnostic identifies structural conditions. It does not replace '
                          'a full SIM audit (field interviews, document review, evidence verification). '
@@ -390,7 +430,6 @@ def all_answered(keys):
 # WELCOME SCREEN
 # ------------------------------
 if not st.session_state.welcome_shown:
-    # Заставка — на всю ширину
     try:
         st.image("north_is_not_negotiable.png", use_container_width=True)
     except:
@@ -401,7 +440,6 @@ if not st.session_state.welcome_shown:
 
     st.markdown("---")
 
-    # Заголовок
     st.markdown("""
     <div style="text-align: center; padding: 20px 0;">
         <h1 style="color: #1e3a8a; font-size: 40px; margin-bottom: 10px;">
@@ -415,7 +453,6 @@ if not st.session_state.welcome_shown:
 
     st.markdown("---")
 
-    # Ключевая фраза
     st.markdown("""
     <div class="welcome-box">
         <p style="font-size: 18px; line-height: 1.7; color: #1f2937;">
@@ -435,7 +472,6 @@ if not st.session_state.welcome_shown:
     </div>
     """, unsafe_allow_html=True)
 
-    # Что вы получите
     st.markdown("""
     <div class="info-box">
         <p style="font-size: 16px; color: #1e3a8a; font-weight: bold; margin-bottom: 10px;">
@@ -451,17 +487,15 @@ if not st.session_state.welcome_shown:
     </div>
     """, unsafe_allow_html=True)
 
-    # Кнопка
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("▸ ENTER DIAGNOSTIC", use_container_width=True):
         st.session_state.welcome_shown = True
         st.rerun()
 
-    # Footer
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.1 — AVCS — Adaptive Vector Control System</p>
+        <p>SIM Lite v1.2 — AVCS — Adaptive Vector Control System</p>
         <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
@@ -478,7 +512,7 @@ if not st.session_state.welcome_shown:
     st.stop()
 
 # ------------------------------
-# Sidebar (только после Welcome)
+# Sidebar
 # ------------------------------
 with st.sidebar:
     try:
@@ -487,9 +521,9 @@ with st.sidebar:
         st.markdown("### 🧭 AVCS")
 
     st.markdown("## Progress")
-    progress = (st.session_state.step - 1) / 6
+    progress = (st.session_state.step - 1) / 5
     st.progress(min(progress, 1.0))
-    st.markdown(f"**Step {st.session_state.step} of 6**")
+    st.markdown(f"**Step {st.session_state.step} of 5**")
 
     if st.session_state.step > 1:
         st.markdown("---")
@@ -504,7 +538,7 @@ with st.sidebar:
             st.metric("Drift", st.session_state.scores['drift_detection'])
 
     st.markdown("---")
-    st.caption("SIM Lite v1.1")
+    st.caption("SIM Lite v1.2")
     st.caption("© 2026 Yeruslan Chihachyov")
     st.caption("CC BY-NC-ND 4.0")
 
@@ -521,23 +555,23 @@ if st.session_state.step == 1:
     """, unsafe_allow_html=True)
 
     with st.form("trigger_form"):
-        q1 = st.radio(
+        st.radio(
             "Are critical deviation thresholds mandatory and enforced, or discretionary?",
-            ["Yes, mandatory and enforced", "Yes, but discretionary", "No clear thresholds"],
+            ["Mandatory and enforced", "Defined but discretionary", "No defined thresholds"],
             index=None,
             key='q1_1'
         )
 
-        q2 = st.radio(
-            "Can deviations exist without crossing formal limits?",
-            ["No, all deviations tracked", "Sometimes noticed", "Yes, often unnoticed"],
+        st.radio(
+            "Are trend-based deviations (not just threshold breaches) tracked and escalated?",
+            ["Yes, systematically tracked", "Sometimes noticed", "No, only threshold breaches trigger attention"],
             index=None,
             key='q1_2'
         )
 
-        q3 = st.radio(
-            "Is escalation automatic or requires human decision?",
-            ["Automatic", "Requires decision", "Often doesn't happen"],
+        st.radio(
+            "Is escalation automatic or does it require human decision?",
+            ["Automatic (mandatory)", "Requires decision (discretionary)", "Often doesn't happen"],
             index=None,
             key='q1_3'
         )
@@ -547,10 +581,11 @@ if st.session_state.step == 1:
             submitted = st.form_submit_button("Next →", use_container_width=True)
 
         if submitted:
-            if not all_answered(['q1_1', 'q1_2', 'q1_3']):
+            keys = ['q1_1', 'q1_2', 'q1_3']
+            if not all_answered(keys):
                 st.error("Please answer all questions before proceeding.")
             else:
-                save_answers(['q1_1', 'q1_2', 'q1_3'])
+                save_answers(keys)
                 st.session_state.scores['trigger_clarity'] = calculate_trigger_score(st.session_state.answers)
                 st.session_state.justifications['trigger_clarity'] = justify_trigger(
                     st.session_state.scores['trigger_clarity'], st.session_state.answers)
@@ -569,23 +604,23 @@ elif st.session_state.step == 2:
     """, unsafe_allow_html=True)
 
     with st.form("ownership_form"):
-        q1 = st.radio(
+        st.radio(
             "Is a single accountable owner defined for critical decisions?",
             ["Yes, singular owner defined", "Shared but clear", "Collective/unclear"],
             index=None,
             key='q2_1'
         )
 
-        q2 = st.radio(
+        st.radio(
             "Is the owner operationally present during risk exposure?",
             ["Yes, always present", "Usually present", "Rarely present"],
             index=None,
             key='q2_2'
         )
 
-        q3 = st.radio(
-            "Can ownership be overridden collectively without traceability?",
-            ["No, never", "Sometimes", "Yes, commonly"],
+        st.radio(
+            "Is ownership always traceable to a named decision-maker?",
+            ["Yes, always", "Sometimes", "Rarely / never"],
             index=None,
             key='q2_3'
         )
@@ -601,10 +636,11 @@ elif st.session_state.step == 2:
             st.rerun()
 
         if submitted:
-            if not all_answered(['q2_1', 'q2_2', 'q2_3']):
+            keys = ['q2_1', 'q2_2', 'q2_3']
+            if not all_answered(keys):
                 st.error("Please answer all questions before proceeding.")
             else:
-                save_answers(['q2_1', 'q2_2', 'q2_3'])
+                save_answers(keys)
                 st.session_state.scores['decision_ownership'] = calculate_ownership_score(st.session_state.answers)
                 st.session_state.justifications['decision_ownership'] = justify_ownership(
                     st.session_state.scores['decision_ownership'], st.session_state.answers)
@@ -623,25 +659,45 @@ elif st.session_state.step == 3:
     """, unsafe_allow_html=True)
 
     with st.form("intervention_form"):
-        q1 = st.radio(
+        st.radio(
             "Is stop-work authority formally codified and protected?",
             ["Yes, formally codified and protected", "Yes, but informally", "No"],
             index=None,
             key='q3_1'
         )
 
-        q2 = st.radio(
-            "How are stop-work decisions reviewed?",
-            ["Always supported", "Usually supported", "Questioned/criticized"],
+        st.radio(
+            "What happens to someone who initiates a stop-work decision?",
+            ["Always supported", "Usually supported", "Questioned / criticized"],
             index=None,
             key='q3_2'
         )
 
-        q3 = st.radio(
+        st.radio(
             "Does stopping operations negatively affect performance metrics?",
             ["No, never", "Sometimes", "Yes, often"],
             index=None,
             key='q3_3'
+        )
+
+        st.markdown("---")
+        st.markdown("**Operator Fitness Protection**")
+
+        st.radio(
+            "Does the system provide a formal, protected mechanism for an operator to refuse duty when unfit?",
+            ["Yes, formally codified and protected", "Yes, but informal", "No"],
+            index=None,
+            key='q3_4'
+        )
+
+        st.markdown("---")
+        st.markdown("**Evidence Before Status**")
+
+        st.radio(
+            "If stop-work authority is claimed, can you show evidence it was actually available at the moment of decision?",
+            ["Yes, evidence exists (records, logs, procedures)", "Partial evidence", "No, status is claimed but not evidenced"],
+            index=None,
+            key='q3_5'
         )
 
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -655,10 +711,11 @@ elif st.session_state.step == 3:
             st.rerun()
 
         if submitted:
-            if not all_answered(['q3_1', 'q3_2', 'q3_3']):
+            keys = ['q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5']
+            if not all_answered(keys):
                 st.error("Please answer all questions before proceeding.")
             else:
-                save_answers(['q3_1', 'q3_2', 'q3_3'])
+                save_answers(keys)
                 st.session_state.scores['protected_intervention'] = calculate_intervention_score(st.session_state.answers)
                 st.session_state.justifications['protected_intervention'] = justify_intervention(
                     st.session_state.scores['protected_intervention'], st.session_state.answers)
@@ -686,25 +743,45 @@ elif st.session_state.step == 4:
     """, unsafe_allow_html=True)
 
     with st.form("override_form"):
-        q1 = st.radio(
-            "Can procedures be bypassed informally without documentation?",
-            ["No, always documented", "Sometimes documented", "Yes, commonly"],
+        st.radio(
+            "Are procedural deviations always documented?",
+            ["Yes, always", "Sometimes", "No, commonly informal"],
             index=None,
             key='q4_1'
         )
 
-        q2 = st.radio(
+        st.radio(
             "Are overrides traceable to a named decision-maker?",
             ["Yes, always", "Sometimes", "Rarely"],
             index=None,
             key='q4_2'
         )
 
-        q3 = st.radio(
+        st.radio(
             "Are overrides reviewed periodically?",
             ["Yes, regularly", "Occasionally", "Never"],
             index=None,
             key='q4_3'
+        )
+
+        st.markdown("---")
+        st.markdown("**Controlled Degradation**")
+
+        st.radio(
+            "When a deviation is allowed to continue, is the residual risk assigned to a named decision owner?",
+            ["Yes, always", "Sometimes", "No, continuation is not assigned"],
+            index=None,
+            key='q4_4'
+        )
+
+        st.markdown("---")
+        st.markdown("**Evidence Before Status**")
+
+        st.radio(
+            "If overrides are claimed to be documented, can you produce evidence of the last three overrides?",
+            ["Yes, evidence exists", "Partial evidence", "No, status is claimed but not evidenced"],
+            index=None,
+            key='q4_5'
         )
 
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -718,10 +795,11 @@ elif st.session_state.step == 4:
             st.rerun()
 
         if submitted:
-            if not all_answered(['q4_1', 'q4_2', 'q4_3']):
+            keys = ['q4_1', 'q4_2', 'q4_3', 'q4_4', 'q4_5']
+            if not all_answered(keys):
                 st.error("Please answer all questions before proceeding.")
             else:
-                save_answers(['q4_1', 'q4_2', 'q4_3'])
+                save_answers(keys)
                 st.session_state.scores['override_transparency'] = calculate_override_score(st.session_state.answers)
                 st.session_state.justifications['override_transparency'] = justify_override(
                     st.session_state.scores['override_transparency'], st.session_state.answers)
@@ -740,25 +818,35 @@ elif st.session_state.step == 5:
     """, unsafe_allow_html=True)
 
     with st.form("drift_form"):
-        q1 = st.radio(
+        st.radio(
             "Are minor deviations recorded systematically?",
             ["Yes, systematically", "Sometimes", "Rarely"],
             index=None,
             key='q5_1'
         )
 
-        q2 = st.radio(
+        st.radio(
             "Is deviation trend analyzed longitudinally?",
             ["Yes, regularly", "Occasionally", "Never"],
             index=None,
             key='q5_2'
         )
 
-        q3 = st.radio(
+        st.radio(
             "Is normalization of deviation actively monitored?",
             ["Yes, actively", "Sometimes", "No"],
             index=None,
             key='q5_3'
+        )
+
+        st.markdown("---")
+        st.markdown("**Evidence Before Status**")
+
+        st.radio(
+            "If the system claims to detect drift, can you produce evidence of a drift that was detected and acted upon?",
+            ["Yes, evidence exists", "Partial evidence", "No, status is claimed but not evidenced"],
+            index=None,
+            key='q5_4'
         )
 
         col1, col2, col3 = st.columns([1, 1, 1])
@@ -772,10 +860,11 @@ elif st.session_state.step == 5:
             st.rerun()
 
         if submitted:
-            if not all_answered(['q5_1', 'q5_2', 'q5_3']):
+            keys = ['q5_1', 'q5_2', 'q5_3', 'q5_4']
+            if not all_answered(keys):
                 st.error("Please answer all questions before proceeding.")
             else:
-                save_answers(['q5_1', 'q5_2', 'q5_3'])
+                save_answers(keys)
                 st.session_state.scores['drift_detection'] = calculate_drift_score(st.session_state.answers)
                 st.session_state.justifications['drift_detection'] = justify_drift(
                     st.session_state.scores['drift_detection'], st.session_state.answers)
@@ -936,7 +1025,7 @@ elif st.session_state.step == 6:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.1 — AVCS — Adaptive Vector Control System</p>
+        <p>SIM Lite v1.2 — AVCS — Adaptive Vector Control System</p>
         <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
