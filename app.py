@@ -390,94 +390,90 @@ def all_answered(keys):
 # WELCOME SCREEN
 # ------------------------------
 if not st.session_state.welcome_shown:
-    col1, col2, col3 = st.columns([1, 2, 1])
-
-    with col2:
-        # Заставка
+    # Заставка — на всю ширину
+    try:
+        st.image("north_is_not_negotiable.png", use_container_width=True)
+    except:
         try:
-            st.image("north_is_not_negotiable.png", use_container_width=True)
+            st.image("logo.png", use_container_width=True)
         except:
-            try:
-                st.image("logo.png", use_container_width=True)
-            except:
-                st.markdown("# 🧭 AVCS")
+            st.markdown("# 🧭 AVCS")
 
-        st.markdown("---")
+    st.markdown("---")
 
-        # Заголовок
-        st.markdown("""
-        <div style="text-align: center; padding: 20px 0;">
-            <h1 style="color: #1e3a8a; font-size: 40px; margin-bottom: 10px;">
-                AVCS Structural Integrity Module
-            </h1>
-            <p style="color: #4b5563; font-size: 19px; font-style: italic;">
-                Diagnosing decision architecture before failure, not after
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Заголовок
+    st.markdown("""
+    <div style="text-align: center; padding: 20px 0;">
+        <h1 style="color: #1e3a8a; font-size: 40px; margin-bottom: 10px;">
+            AVCS Structural Integrity Module
+        </h1>
+        <p style="color: #4b5563; font-size: 19px; font-style: italic;">
+            Diagnosing decision architecture before failure, not after
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-        st.markdown("---")
+    st.markdown("---")
 
-        # Ключевая фраза
-        st.markdown("""
-        <div class="welcome-box">
-            <p style="font-size: 18px; line-height: 1.7; color: #1f2937;">
-                <strong>Deepwater Horizon scored 3/25.</strong>
-            </p>
-            <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
-                Not because of engineering failure — because structural decision
-                weaknesses were embedded long before the explosion.
-            </p>
-            <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
-                Most systems don't fail because people are incompetent.
-                They fail because structural weaknesses remain invisible until it's too late.
-            </p>
-            <p style="font-size: 16px; line-height: 1.7; color: #1e3a8a; font-weight: bold;">
-                SIM makes the invisible visible.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Ключевая фраза
+    st.markdown("""
+    <div class="welcome-box">
+        <p style="font-size: 18px; line-height: 1.7; color: #1f2937;">
+            <strong>Deepwater Horizon scored 3/25.</strong>
+        </p>
+        <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
+            Not because of engineering failure — because structural decision
+            weaknesses were embedded long before the explosion.
+        </p>
+        <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
+            Most systems don't fail because people are incompetent.
+            They fail because structural weaknesses remain invisible until it's too late.
+        </p>
+        <p style="font-size: 16px; line-height: 1.7; color: #1e3a8a; font-weight: bold;">
+            SIM makes the invisible visible.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
-        # Что вы получите
-        st.markdown("""
-        <div class="info-box">
-            <p style="font-size: 16px; color: #1e3a8a; font-weight: bold; margin-bottom: 10px;">
-                This assessment takes 5–10 minutes. You will receive:
-            </p>
-            <ul style="font-size: 15px; line-height: 1.9; color: #1f2937;">
-                <li>Structural Integrity Score (0–25)</li>
-                <li>Visual radar chart of five pillars</li>
-                <li>Score justification for each pillar</li>
-                <li>Benchmarks (Deepwater Horizon, Bhopal)</li>
-                <li>PDF report with recommendations</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
+    # Что вы получите
+    st.markdown("""
+    <div class="info-box">
+        <p style="font-size: 16px; color: #1e3a8a; font-weight: bold; margin-bottom: 10px;">
+            This assessment takes 5–10 minutes. You will receive:
+        </p>
+        <ul style="font-size: 15px; line-height: 1.9; color: #1f2937;">
+            <li>Structural Integrity Score (0–25)</li>
+            <li>Visual radar chart of five pillars</li>
+            <li>Score justification for each pillar</li>
+            <li>Benchmarks (Deepwater Horizon, Bhopal)</li>
+            <li>PDF report with recommendations</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
-        # Кнопка
-        col_a, col_b, col_c = st.columns([1, 1, 1])
-        with col_b:
-            if st.button("▸ ENTER DIAGNOSTIC", use_container_width=True, type="primary"):
-                st.session_state.welcome_shown = True
-                st.rerun()
+    # Кнопка
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("▸ ENTER DIAGNOSTIC", use_container_width=True):
+        st.session_state.welcome_shown = True
+        st.rerun()
 
-        # Footer
-        st.markdown("---")
-        st.markdown("""
-        <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-            <p>SIM Lite v1.1 — AVCS — Adaptive Vector Control System</p>
-            <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
-            <p>
-                <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
-                Full AVCS documentation
-                </a>
-                &nbsp;|&nbsp;
-                <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/blob/main/docs/System_Navigator.md" target="_blank">
-                System Navigator
-                </a>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Footer
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
+        <p>SIM Lite v1.1 — AVCS — Adaptive Vector Control System</p>
+        <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
+        <p>
+            <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
+            Full AVCS documentation
+            </a>
+            &nbsp;|&nbsp;
+            <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/blob/main/docs/System_Navigator.md" target="_blank">
+            System Navigator
+            </a>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.stop()
 
