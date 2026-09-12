@@ -500,8 +500,8 @@ def create_pdf(scores, total_score, justifications):
     try:
         radar_file = create_radar_image(scores)
         chart_y = pdf.get_y()
-        pdf.image(radar_file, x=55, y=chart_y, w=100)
-        pdf.set_y(chart_y + 105)
+        pdf.image(radar_file, x=60, y=chart_y, w=90)
+        pdf.set_y(chart_y + 95)
     except Exception as e:
         pdf.set_x(10)
         pdf.set_font('Helvetica', 'I', 9)
