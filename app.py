@@ -2,21 +2,21 @@
 AVCS STRUCTURAL INTEGRITY MODULE (SIM) — LITE
 Diagnostic Instrument for Decision Architecture
 
-Version: 1.2
+Version: 1.3
 Companion Documents: Charter v1.1, CORE v2.1, Code of Ethics v1.1,
                     Code of Practice v1.1, SIM v1.1
 License: CC BY-NC-ND 4.0
 
-Changelog v1.2:
+Changelog:
+v1.3:
+- Migrated from fpdf to fpdf2 (Unicode-safe)
+- All em dashes replaced with hyphens
+- pdf.output() used directly (returns bytes)
+- Radar chart optimized: height=350, displayModeBar disabled
+v1.2:
 - 15 → 20 questions
-- 6 questions reformulated (removed negative polarity, aligned with SIM v1.1)
-- 5 new questions added:
-  * Q3.4 Operator Fitness Protection (Ethics 13, HPSM 4)
-  * Q3.5 Evidence Before Status (Charter 4.3, CORE 21)
-  * Q4.4 Controlled Degradation (Practice 4)
-  * Q4.5 Evidence Before Status (Charter 4.3, CORE 21)
-  * Q5.4 Evidence Before Status (Charter 4.3, CORE 21)
-- Sidebar: "Step X of 5" (questions only)
+- 6 questions reformulated, 5 new added
+- Sidebar: Step X of 5
 """
 
 import streamlit as st
@@ -113,13 +113,6 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         margin-bottom: 20px;
     }
-    .evidence-box {
-        background-color: #fef3c7;
-        padding: 15px;
-        border-radius: 10px;
-        border-left: 4px solid #d97706;
-        margin: 10px 0;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -179,22 +172,17 @@ def calculate_ownership_score(answers):
 
 def calculate_intervention_score(answers):
     score = 0
-    # Q3.1
     if answers.get('q3_1') == "Yes, formally codified and protected": score += 2
     elif answers.get('q3_1') == "Yes, but informally": score += 1
 
-    # Q3.2
     if answers.get('q3_2') == "Always supported": score += 2
     elif answers.get('q3_2') == "Usually supported": score += 1
 
-    # Q3.3
     if answers.get('q3_3') == "No, never": score += 1
 
-    # Q3.4 — Operator Fitness (new)
     if answers.get('q3_4') == "Yes, formally codified and protected": score += 2
     elif answers.get('q3_4') == "Yes, but informal": score += 1
 
-    # Q3.5 — Evidence (new)
     if answers.get('q3_5') == "Yes, evidence exists (records, logs, procedures)": score += 1
 
     return min(score, 5)
@@ -202,21 +190,16 @@ def calculate_intervention_score(answers):
 
 def calculate_override_score(answers):
     score = 0
-    # Q4.1
     if answers.get('q4_1') == "Yes, always": score += 2
     elif answers.get('q4_1') == "Sometimes": score += 1
 
-    # Q4.2
     if answers.get('q4_2') == "Yes, always": score += 2
     elif answers.get('q4_2') == "Sometimes": score += 1
 
-    # Q4.3
     if answers.get('q4_3') == "Yes, regularly": score += 1
 
-    # Q4.4 — Controlled Degradation (new)
     if answers.get('q4_4') == "Yes, always": score += 1
 
-    # Q4.5 — Evidence (new)
     if answers.get('q4_5') == "Yes, evidence exists": score += 1
 
     return min(score, 5)
@@ -224,18 +207,14 @@ def calculate_override_score(answers):
 
 def calculate_drift_score(answers):
     score = 0
-    # Q5.1
     if answers.get('q5_1') == "Yes, systematically": score += 2
     elif answers.get('q5_1') == "Sometimes": score += 1
 
-    # Q5.2
     if answers.get('q5_2') == "Yes, regularly": score += 2
     elif answers.get('q5_2') == "Occasionally": score += 1
 
-    # Q5.3
     if answers.get('q5_3') == "Yes, actively": score += 1
 
-    # Q5.4 — Evidence (new)
     if answers.get('q5_4') == "Yes, evidence exists": score += 1
 
     return min(score, 5)
@@ -250,7 +229,7 @@ def justify_trigger(score, answers):
     elif score >= 3:
         return "Triggers are defined and mostly applied, but not consistently mandatory."
     elif score >= 2:
-        return "Triggers are defined but discretionary — escalation depends on interpretation."
+        return "Triggers are defined but discretionary - escalation depends on interpretation."
     elif score >= 1:
         return "Triggers are informal or inconsistent. Deviations often pass unnoticed."
     else:
@@ -334,32 +313,36 @@ def create_radar_chart(scores):
     fig.update_layout(
         polar=dict(radialaxis=dict(visible=True, range=[0, 5])),
         showlegend=False,
-        height=400,
-        margin=dict(l=80, r=80, t=20, b=20)
+        height=350,
+        margin=dict(l=60, r=60, t=20, b=20)
     )
     return fig
 
 
 # ------------------------------
-# Функция для создания PDF-отчёта
+# Функция для создания PDF-отчёта (fpdf2)
 # ------------------------------
 def create_pdf(scores, total_score, justifications):
     pdf = FPDF()
     pdf.add_page()
 
-    pdf.set_font('Arial', 'B', 16)
+    # Заголовок
+    pdf.set_font('Helvetica', 'B', 16)
     pdf.cell(0, 10, 'AVCS Structural Integrity Module Report', 0, 1, 'C')
-    pdf.set_font('Arial', 'I', 10)
-    pdf.cell(0, 6, 'SIM Lite v1.2', 0, 1, 'C')
+    pdf.set_font('Helvetica', 'I', 10)
+    pdf.cell(0, 6, 'SIM Lite v1.3', 0, 1, 'C')
     pdf.ln(4)
 
-    pdf.set_font('Arial', '', 10)
+    # Дата
+    pdf.set_font('Helvetica', '', 10)
     pdf.cell(0, 10, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1, 'R')
     pdf.ln(6)
 
-    pdf.set_font('Arial', 'B', 12)
+    # Общий скор
+    pdf.set_font('Helvetica', 'B', 12)
     pdf.cell(0, 10, f'Total Structural Integrity Score: {total_score} / 25', 0, 1)
 
+    # Классификация
     if total_score <= 10:
         classification = "HIGH STRUCTURAL VULNERABILITY"
     elif total_score <= 17:
@@ -369,13 +352,14 @@ def create_pdf(scores, total_score, justifications):
     else:
         classification = "ARCHITECTURALLY RESILIENT"
 
-    pdf.set_font('Arial', 'B', 12)
+    pdf.set_font('Helvetica', 'B', 12)
     pdf.cell(0, 10, f'Classification: {classification}', 0, 1)
     pdf.ln(8)
 
-    pdf.set_font('Arial', 'B', 12)
+    # Детальные скоры
+    pdf.set_font('Helvetica', 'B', 12)
     pdf.cell(0, 10, 'Pillar Scores and Justifications:', 0, 1)
-    pdf.set_font('Arial', '', 11)
+    pdf.set_font('Helvetica', '', 11)
 
     pillars = [
         ('Trigger Clarity', scores['trigger_clarity'], justifications['trigger_clarity']),
@@ -386,30 +370,33 @@ def create_pdf(scores, total_score, justifications):
     ]
 
     for name, score, just in pillars:
-        pdf.set_font('Arial', 'B', 11)
+        pdf.set_font('Helvetica', 'B', 11)
         pdf.cell(0, 8, f'{name}: {score}/5', 0, 1)
-        pdf.set_font('Arial', '', 10)
+        pdf.set_font('Helvetica', '', 10)
         pdf.multi_cell(0, 6, just)
         pdf.ln(2)
 
+    # Benchmarks
     pdf.ln(4)
-    pdf.set_font('Arial', 'B', 11)
+    pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Benchmarks:', 0, 1)
-    pdf.set_font('Arial', '', 10)
+    pdf.set_font('Helvetica', '', 10)
     pdf.cell(0, 6, 'Deepwater Horizon: 3/25', 0, 1)
     pdf.cell(0, 6, 'Bhopal: 4/25', 0, 1)
     pdf.cell(0, 6, 'Industry average (estimated): 12/25', 0, 1)
     pdf.ln(6)
 
-    pdf.set_font('Arial', 'I', 9)
+    # Disclaimer
+    pdf.set_font('Helvetica', 'I', 9)
     pdf.multi_cell(0, 5, 'This diagnostic identifies structural conditions. It does not replace '
                          'a full SIM audit (field interviews, document review, evidence verification). '
                          'AI may assist; human judgment remains binding.')
     pdf.ln(4)
-    pdf.multi_cell(0, 5, 'AVCS — Adaptive Vector Control System. '
+    pdf.multi_cell(0, 5, 'AVCS - Adaptive Vector Control System. '
                          'Charter v1.1 / CORE v2.1 / Code of Ethics v1.1.')
 
-    pdf_output = pdf.output(dest='S').encode('latin-1', errors='replace')
+    # fpdf2 output() returns bytes directly
+    pdf_output = pdf.output()
     return base64.b64encode(pdf_output).decode('latin1')
 
 
@@ -459,7 +446,7 @@ if not st.session_state.welcome_shown:
             <strong>Deepwater Horizon scored 3/25.</strong>
         </p>
         <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
-            Not because of engineering failure — because structural decision
+            Not because of engineering failure - because structural decision
             weaknesses were embedded long before the explosion.
         </p>
         <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
@@ -475,10 +462,10 @@ if not st.session_state.welcome_shown:
     st.markdown("""
     <div class="info-box">
         <p style="font-size: 16px; color: #1e3a8a; font-weight: bold; margin-bottom: 10px;">
-            This assessment takes 5–10 minutes. You will receive:
+            This assessment takes 5-10 minutes. You will receive:
         </p>
         <ul style="font-size: 15px; line-height: 1.9; color: #1f2937;">
-            <li>Structural Integrity Score (0–25)</li>
+            <li>Structural Integrity Score (0-25)</li>
             <li>Visual radar chart of five pillars</li>
             <li>Score justification for each pillar</li>
             <li>Benchmarks (Deepwater Horizon, Bhopal)</li>
@@ -495,7 +482,7 @@ if not st.session_state.welcome_shown:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.2 — AVCS — Adaptive Vector Control System</p>
+        <p>SIM Lite v1.3 - AVCS - Adaptive Vector Control System</p>
         <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
@@ -538,7 +525,7 @@ with st.sidebar:
             st.metric("Drift", st.session_state.scores['drift_detection'])
 
     st.markdown("---")
-    st.caption("SIM Lite v1.2")
+    st.caption("SIM Lite v1.3")
     st.caption("© 2026 Yeruslan Chihachyov")
     st.caption("CC BY-NC-ND 4.0")
 
@@ -738,7 +725,7 @@ elif st.session_state.step == 4:
         <strong>💡 Controlled degradation vs drift:</strong>
         Not every reduction of margin requires an immediate stop.
         The structural difference is whether the reduction is
-        <em>declared, owned, documented, and reviewable</em> — or silently normalized.
+        <em>declared, owned, documented, and reviewable</em> - or silently normalized.
     </div>
     """, unsafe_allow_html=True)
 
@@ -920,7 +907,11 @@ elif st.session_state.step == 6:
     with col1:
         st.markdown("### Radar Chart")
         fig = create_radar_chart(st.session_state.scores)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+            config={'displayModeBar': False}
+        )
 
     with col2:
         st.markdown("### Pillar Scores")
@@ -961,9 +952,9 @@ elif st.session_state.step == 6:
     st.markdown("""
     <div class="benchmark-box">
         <strong>Reference points:</strong><br>
-        Deepwater Horizon: <strong>3/25</strong> — High Structural Vulnerability<br>
-        Bhopal: <strong>4/25</strong> — High Structural Vulnerability<br>
-        Industry average (estimated): <strong>12/25</strong> — Conditional Stability
+        Deepwater Horizon: <strong>3/25</strong> - High Structural Vulnerability<br>
+        Bhopal: <strong>4/25</strong> - High Structural Vulnerability<br>
+        Industry average (estimated): <strong>12/25</strong> - Conditional Stability
     </div>
     """, unsafe_allow_html=True)
 
@@ -1025,7 +1016,7 @@ elif st.session_state.step == 6:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.2 — AVCS — Adaptive Vector Control System</p>
+        <p>SIM Lite v1.3 - AVCS - Adaptive Vector Control System</p>
         <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
