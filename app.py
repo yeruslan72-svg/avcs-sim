@@ -394,7 +394,7 @@ def create_radar_image(scores, filename="radar_temp.png"):
     angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
     angles += angles[:1]
 
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(5, 5), subplot_kw=dict(polar=True))
     ax.plot(angles, values, 'o-', linewidth=2, color='#1e3a8a')
     ax.fill(angles, values, alpha=0.25, color='#1e3a8a')
     ax.set_xticks(angles[:-1])
