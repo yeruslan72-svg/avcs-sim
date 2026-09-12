@@ -885,4 +885,8 @@ elif st.session_state.step == 7:
     with col3:
         st.markdown("""
         <a href="https://www.linkedin.com/in/yeruslan-chihachyov-70a807126" target="_blank">
-            <button style="background-color: #0a66c2; color: white; padding: 8px 16px
+                        <button style="background-color: #0a66c2; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
+            📞 Request Full Audit
+            </button>
+        </a>
+        """, unsafe_allow_html=True)
