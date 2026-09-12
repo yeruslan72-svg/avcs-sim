@@ -2,23 +2,20 @@
 AVCS STRUCTURAL INTEGRITY MODULE (SIM) — LITE
 Diagnostic Instrument for Decision Architecture
 
-Version: 1.4.2
+Version: 1.4.3
 Companion Documents: Charter v1.1, CORE v2.1, Code of Ethics v1.1,
                     Code of Practice v1.1, SIM v1.1
 License: CC BY-NC-ND 4.0
 
 Changelog:
+v1.4.3:
+- PDF layout polish: radar chart smaller (w=70, y+75)
+- figsize reduced (5x5) — more compact image
 v1.4.2:
-- PDF layout fixes:
-  * Radar chart smaller (w=90, y+95) to fit pillar scores
-  * Vulnerability Map: added ln(1) after priority headers
-  * Reinforcement Plan: show all weak pillars (removed [:3] limit)
-  * Evidence Appendix: removed name duplication, added score to header
-  * Benchmarks: added ln(2) after header
+- Radar chart positioning, Vulnerability Map, Reinforcement Plan,
+  Evidence Appendix, Benchmarks fixes
 v1.4.1:
-- Fixed FPDFException (Not enough horizontal space)
-- Added pdf.set_x(10) before every multi_cell
-- Merged consecutive multi_cell calls with \n
+- Fixed FPDFException (horizontal space)
 v1.4:
 - Professional PDF report (13 elements)
 v1.3:
@@ -341,7 +338,7 @@ class AVCSFPDF(FPDF):
         self.set_font('Helvetica', 'I', 8)
         self.set_text_color(138, 138, 138)
         self.cell(0, 10,
-                  f'SIM Lite v1.4.2 | Page {self.page_no()} | 2026 Yeruslan Chihachyov',
+                  f'SIM Lite v1.4.3 | Page {self.page_no()} | 2026 Yeruslan Chihachyov',
                   0, 0, 'C')
 
 
@@ -398,21 +395,21 @@ def create_radar_image(scores, filename="radar_temp.png"):
     ax.plot(angles, values, 'o-', linewidth=2, color='#1e3a8a')
     ax.fill(angles, values, alpha=0.25, color='#1e3a8a')
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, fontsize=11)
+    ax.set_xticklabels(categories, fontsize=10)
     ax.set_ylim(0, 5)
     ax.set_yticks([1, 2, 3, 4, 5])
-    ax.set_yticklabels(['1', '2', '3', '4', '5'], fontsize=9, color='#666666')
+    ax.set_yticklabels(['1', '2', '3', '4', '5'], fontsize=8, color='#666666')
     ax.grid(True, color='#cccccc')
     ax.set_facecolor('#f8f9fa')
 
     plt.tight_layout()
-    plt.savefig(filename, dpi=100, bbox_inches='tight', facecolor='white')
+    plt.savefig(filename, dpi=90, bbox_inches='tight', facecolor='white')
     plt.close()
     return filename
 
 
 # ------------------------------
-# PDF report (v1.4.2)
+# PDF report (v1.4.3)
 # ------------------------------
 def create_pdf(scores, total_score, justifications):
     pdf = AVCSFPDF()
@@ -436,7 +433,7 @@ def create_pdf(scores, total_score, justifications):
     pdf.set_x(10)
     pdf.set_font('Helvetica', 'I', 10)
     pdf.set_text_color(75, 85, 99)
-    pdf.cell(0, 6, 'SIM Lite v1.4.2 - Adaptive Vector Control System', 0, 1, 'C')
+    pdf.cell(0, 6, 'SIM Lite v1.4.3 - Adaptive Vector Control System', 0, 1, 'C')
     pdf.ln(4)
 
     # --- METADATA ---
@@ -447,7 +444,7 @@ def create_pdf(scores, total_score, justifications):
     pdf.set_x(10)
     pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1)
     pdf.set_x(10)
-    pdf.cell(0, 5, 'Assessed by: SIM Lite v1.4.2 (automated diagnostic)', 0, 1)
+    pdf.cell(0, 5, 'Assessed by: SIM Lite v1.4.3 (automated diagnostic)', 0, 1)
     pdf.ln(6)
 
     # --- SCORE ---
@@ -486,17 +483,16 @@ def create_pdf(scores, total_score, justifications):
     pdf.multi_cell(0, 6, summary)
     pdf.ln(6)
 
-    # --- RADAR CHART ---
+    # --- RADAR CHART (compact) ---
     pdf.set_x(10)
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Structural Profile', 0, 1)
-        try:
+    try:
         radar_file = create_radar_image(scores)
         chart_y = pdf.get_y()
         pdf.image(radar_file, x=70, y=chart_y, w=70)
         pdf.set_y(chart_y + 75)
-    except Exception as e:
     except Exception as e:
         pdf.set_x(10)
         pdf.set_font('Helvetica', 'I', 9)
@@ -787,7 +783,7 @@ if not st.session_state.welcome_shown:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.4.2 - AVCS - Adaptive Vector Control System</p>
+        <p>SIM Lite v1.4.3 - AVCS - Adaptive Vector Control System</p>
         <p>2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
@@ -830,7 +826,7 @@ with st.sidebar:
             st.metric("Drift", st.session_state.scores['drift_detection'])
 
     st.markdown("---")
-    st.caption("SIM Lite v1.4.2")
+    st.caption("SIM Lite v1.4.3")
     st.caption("2026 Yeruslan Chihachyov")
     st.caption("CC BY-NC-ND 4.0")
 
@@ -1321,7 +1317,7 @@ elif st.session_state.step == 6:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.4.2 - AVCS - Adaptive Vector Control System</p>
+        <p>SIM Lite v1.4.3 - AVCS - Adaptive Vector Control System</p>
         <p>2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
