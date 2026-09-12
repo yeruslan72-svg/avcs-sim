@@ -2,20 +2,34 @@
 AVCS STRUCTURAL INTEGRITY MODULE (SIM) — LITE
 Diagnostic Instrument for Decision Architecture
 
-Version: 1.3
+Version: 1.4
 Companion Documents: Charter v1.1, CORE v2.1, Code of Ethics v1.1,
                     Code of Practice v1.1, SIM v1.1
 License: CC BY-NC-ND 4.0
 
 Changelog:
+v1.4:
+- Professional PDF report:
+  * AVCS logo in header
+  * Radar chart (matplotlib)
+  * Executive Summary
+  * Structural Vulnerability Map
+  * Structural Risk Forecast
+  * Priority Reinforcement Plan
+  * Evidence Appendix
+  * Report ID (unique)
+  * Page numbers (footer on each page)
+  * Color-coded score
+  * AVCS quote (CORE v2.1)
+  * Links to full documentation
 v1.3:
 - Migrated from fpdf to fpdf2 (Unicode-safe)
 - All em dashes replaced with hyphens
-- pdf.output() used directly (returns bytes)
-- Radar chart optimized: height=350, displayModeBar disabled
+- pdf.output() used directly
+- Radar chart optimized (height=350, no toolbar)
 v1.2:
 - 15 → 20 questions
-- 6 questions reformulated, 5 new added
+- 6 reformulated, 5 new
 - Sidebar: Step X of 5
 """
 
@@ -24,6 +38,11 @@ import pandas as pd
 import plotly.graph_objects as go
 from fpdf import FPDF
 import base64
+import uuid
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from datetime import datetime
 
 # ------------------------------
@@ -289,7 +308,7 @@ def justify_drift(score, answers):
 
 
 # ------------------------------
-# Функция для создания радар-графика
+# Радар-график (Plotly, для UI)
 # ------------------------------
 def create_radar_chart(scores):
     categories = ['Trigger Clarity', 'Decision Ownership', 'Protected Intervention',
@@ -320,46 +339,167 @@ def create_radar_chart(scores):
 
 
 # ------------------------------
-# Функция для создания PDF-отчёта (fpdf2)
+# PDF class (footer on each page)
+# ------------------------------
+class AVCSFPDF(FPDF):
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Helvetica', 'I', 8)
+        self.set_text_color(138, 138, 138)
+        self.cell(0, 10,
+                  f'SIM Lite v1.4 | Page {self.page_no()} | 2026 Yeruslan Chihachyov',
+                  0, 0, 'C')
+
+
+# ------------------------------
+# Helpers for PDF
+# ------------------------------
+def generate_report_id():
+    now = datetime.now()
+    return f"SIM-{now.strftime('%Y%m%d-%H%M')}-{uuid.uuid4().hex[:5].upper()}"
+
+
+def generate_executive_summary(total_score, scores, justifications):
+    if total_score <= 10:
+        cls = "HIGH STRUCTURAL VULNERABILITY"
+        return (f"This system demonstrates {cls} ({total_score}/25). "
+                f"Multiple conditions of control fail. "
+                f"The system may appear stable under normal conditions, "
+                f"but is structurally unprepared for pressure.")
+    elif total_score <= 17:
+        cls = "CONDITIONAL STABILITY"
+        weak = [k.replace('_', ' ').title() for k, v in scores.items() if v <= 2]
+        summary = (f"This system demonstrates {cls} ({total_score}/25). "
+                   f"Some pillars are structurally sound, but critical weaknesses exist. ")
+        if weak:
+            summary += f"Priority areas: {', '.join(weak)}."
+        return summary
+    elif total_score <= 22:
+        cls = "STRUCTURALLY CONTROLLED"
+        return (f"This system demonstrates {cls} ({total_score}/25). "
+                f"All conditions of control are satisfied. "
+                f"Targeted improvements will strengthen further.")
+    else:
+        cls = "ARCHITECTURALLY RESILIENT"
+        return (f"This system demonstrates {cls} ({total_score}/25). "
+                f"All conditions of control are satisfied and verified. "
+                f"The system is designed to protect good decisions under pressure.")
+
+
+def create_radar_image(scores, filename="radar_temp.png"):
+    categories = ['Trigger', 'Ownership', 'Intervention', 'Override', 'Drift']
+    values = [
+        scores['trigger_clarity'],
+        scores['decision_ownership'],
+        scores['protected_intervention'],
+        scores['override_transparency'],
+        scores['drift_detection']
+    ]
+    values += values[:1]
+
+    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
+    angles += angles[:1]
+
+    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+    ax.plot(angles, values, 'o-', linewidth=2, color='#1e3a8a')
+    ax.fill(angles, values, alpha=0.25, color='#1e3a8a')
+    ax.set_xticks(angles[:-1])
+    ax.set_xticklabels(categories, fontsize=11)
+    ax.set_ylim(0, 5)
+    ax.set_yticks([1, 2, 3, 4, 5])
+    ax.set_yticklabels(['1', '2', '3', '4', '5'], fontsize=9, color='#666666')
+    ax.grid(True, color='#cccccc')
+    ax.set_facecolor('#f8f9fa')
+
+    plt.tight_layout()
+    plt.savefig(filename, dpi=100, bbox_inches='tight', facecolor='white')
+    plt.close()
+    return filename
+
+
+# ------------------------------
+# PDF report (v1.4)
 # ------------------------------
 def create_pdf(scores, total_score, justifications):
-    pdf = FPDF()
+    pdf = AVCSFPDF()
     pdf.add_page()
 
-    # Заголовок
-    pdf.set_font('Helvetica', 'B', 16)
-    pdf.cell(0, 10, 'AVCS Structural Integrity Module Report', 0, 1, 'C')
+    report_id = generate_report_id()
+
+    # --- LOGO ---
+    try:
+        pdf.image("logo.png", x=170, y=8, w=25)
+    except:
+        pass
+
+    # --- HEADER ---
+    pdf.set_font('Helvetica', 'B', 20)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 12, 'AVCS Structural Integrity Report', 0, 1, 'C')
     pdf.set_font('Helvetica', 'I', 10)
-    pdf.cell(0, 6, 'SIM Lite v1.3', 0, 1, 'C')
+    pdf.set_text_color(75, 85, 99)
+    pdf.cell(0, 6, 'SIM Lite v1.4 - Adaptive Vector Control System', 0, 1, 'C')
     pdf.ln(4)
 
-    # Дата
-    pdf.set_font('Helvetica', '', 10)
-    pdf.cell(0, 10, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1, 'R')
+    # --- METADATA ---
+    pdf.set_font('Helvetica', '', 9)
+    pdf.set_text_color(75, 85, 99)
+    pdf.cell(0, 5, f'Report ID: {report_id}', 0, 1)
+    pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1)
+    pdf.cell(0, 5, 'Assessed by: SIM Lite v1.4 (automated diagnostic)', 0, 1)
     pdf.ln(6)
 
-    # Общий скор
-    pdf.set_font('Helvetica', 'B', 12)
-    pdf.cell(0, 10, f'Total Structural Integrity Score: {total_score} / 25', 0, 1)
-
-    # Классификация
+    # --- SCORE ---
     if total_score <= 10:
         classification = "HIGH STRUCTURAL VULNERABILITY"
+        color = (220, 38, 38)
     elif total_score <= 17:
         classification = "CONDITIONAL STABILITY"
+        color = (245, 158, 11)
     elif total_score <= 22:
         classification = "STRUCTURALLY CONTROLLED"
+        color = (59, 130, 246)
     else:
         classification = "ARCHITECTURALLY RESILIENT"
+        color = (16, 185, 129)
 
-    pdf.set_font('Helvetica', 'B', 12)
-    pdf.cell(0, 10, f'Classification: {classification}', 0, 1)
-    pdf.ln(8)
+    pdf.set_text_color(*color)
+    pdf.set_font('Helvetica', 'B', 28)
+    pdf.cell(0, 15, f'{total_score} / 25', 0, 1, 'C')
+    pdf.set_font('Helvetica', 'B', 14)
+    pdf.cell(0, 10, classification, 0, 1, 'C')
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(6)
 
-    # Детальные скоры
-    pdf.set_font('Helvetica', 'B', 12)
-    pdf.cell(0, 10, 'Pillar Scores and Justifications:', 0, 1)
-    pdf.set_font('Helvetica', '', 11)
+    # --- EXECUTIVE SUMMARY ---
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Executive Summary', 0, 1)
+    pdf.set_font('Helvetica', '', 10)
+    pdf.set_text_color(31, 41, 55)
+    summary = generate_executive_summary(total_score, scores, justifications)
+    pdf.multi_cell(0, 6, summary)
+    pdf.ln(6)
+
+    # --- RADAR CHART ---
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Structural Profile', 0, 1)
+    try:
+        radar_file = create_radar_image(scores)
+        pdf.image(radar_file, x=55, y=pdf.get_y(), w=100)
+        pdf.ln(105)
+    except Exception as e:
+        pdf.set_font('Helvetica', 'I', 9)
+        pdf.set_text_color(138, 138, 138)
+        pdf.cell(0, 6, f'(Radar chart unavailable: {e})', 0, 1)
+    pdf.ln(4)
+
+    # --- PILLAR SCORES ---
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Pillar Scores and Justifications', 0, 1)
+    pdf.ln(2)
 
     pillars = [
         ('Trigger Clarity', scores['trigger_clarity'], justifications['trigger_clarity']),
@@ -371,31 +511,152 @@ def create_pdf(scores, total_score, justifications):
 
     for name, score, just in pillars:
         pdf.set_font('Helvetica', 'B', 11)
-        pdf.cell(0, 8, f'{name}: {score}/5', 0, 1)
+        pdf.set_text_color(30, 58, 138)
+        pdf.cell(0, 7, f'{name}: {score}/5', 0, 1)
         pdf.set_font('Helvetica', '', 10)
-        pdf.multi_cell(0, 6, just)
+        pdf.set_text_color(31, 41, 55)
+        pdf.multi_cell(0, 5, just)
         pdf.ln(2)
 
-    # Benchmarks
+    # --- VULNERABILITY MAP ---
+    pdf.add_page()
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Structural Vulnerability Map', 0, 1)
+    pdf.ln(2)
+
+    weak_pillars = [
+        (name, score, just)
+        for name, score, just in pillars
+        if score <= 3
+    ]
+
+    if not weak_pillars:
+        pdf.set_font('Helvetica', 'I', 10)
+        pdf.set_text_color(31, 41, 55)
+        pdf.multi_cell(0, 6, "No critical vulnerabilities identified. All pillars score above 3/5.")
+    else:
+        for i, (name, score, just) in enumerate(weak_pillars, 1):
+            pdf.set_font('Helvetica', 'B', 11)
+            pdf.set_text_color(220, 38, 38)
+            pdf.cell(0, 7, f'Priority {i}: {name} ({score}/5)', 0, 1)
+            pdf.set_font('Helvetica', '', 10)
+            pdf.set_text_color(31, 41, 55)
+            pdf.multi_cell(0, 5, just)
+            pdf.ln(2)
+
+    # --- RISK FORECAST ---
     pdf.ln(4)
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.cell(0, 8, 'Benchmarks:', 0, 1)
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Structural Risk Forecast', 0, 1)
     pdf.set_font('Helvetica', '', 10)
-    pdf.cell(0, 6, 'Deepwater Horizon: 3/25', 0, 1)
-    pdf.cell(0, 6, 'Bhopal: 4/25', 0, 1)
-    pdf.cell(0, 6, 'Industry average (estimated): 12/25', 0, 1)
+    pdf.set_text_color(31, 41, 55)
+    pdf.multi_cell(0, 6,
+                   "If no corrective action is taken, the system is most likely to fail through:")
+    pdf.ln(2)
+    pdf.multi_cell(0, 6, "1. Escalation delay - signals visible but not acted upon.")
+    pdf.multi_cell(0, 6, "2. Override normalization - deviations logged but not audited.")
+    pdf.multi_cell(0, 6, "3. Ownership diffusion - responsibility diluted under pressure.")
+    pdf.ln(4)
+    pdf.set_font('Helvetica', 'I', 10)
+    pdf.multi_cell(0, 6, 'Not "if an incident happens." But how.')
+    pdf.ln(4)
+
+    # --- REINFORCEMENT PLAN ---
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Priority Reinforcement Plan', 0, 1)
+    pdf.set_font('Helvetica', '', 10)
+    pdf.set_text_color(31, 41, 55)
+
+    if weak_pillars:
+        for i, (name, score, just) in enumerate(weak_pillars[:3], 1):
+            pdf.set_font('Helvetica', 'B', 10)
+            pdf.cell(0, 6, f'{i}. {name}', 0, 1)
+            pdf.set_font('Helvetica', '', 10)
+            pdf.multi_cell(0, 5, f'   Objective: Address weakness (current score: {score}/5).')
+            pdf.multi_cell(0, 5, f'   Timeline: {30 * i} days.')
+            pdf.ln(2)
+    else:
+        pdf.multi_cell(0, 6, 'No priority actions required. Maintain current structural integrity.')
+
+    # --- EVIDENCE APPENDIX ---
+    pdf.add_page()
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Evidence Appendix', 0, 1)
+    pdf.set_font('Helvetica', 'I', 9)
+    pdf.set_text_color(138, 138, 138)
+    pdf.multi_cell(0, 5,
+                   'Evidence is self-reported through the SIM Lite diagnostic. '
+                   'A full SIM audit is required for evidence verification.')
+    pdf.ln(4)
+
+    for name, score, just in pillars:
+        pdf.set_font('Helvetica', 'B', 11)
+        pdf.set_text_color(30, 58, 138)
+        pdf.cell(0, 7, f'{name}', 0, 1)
+        pdf.set_font('Helvetica', '', 10)
+        pdf.set_text_color(31, 41, 55)
+        pdf.multi_cell(0, 5, f'Score: {score}/5')
+        pdf.multi_cell(0, 5, f'Evidence: Self-reported')
+        pdf.multi_cell(0, 5, f'Full audit recommended for evidence verification.')
+        pdf.ln(2)
+
+    # --- BENCHMARKS ---
+    pdf.ln(4)
+    pdf.set_font('Helvetica', 'B', 13)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 10, 'Benchmarks', 0, 1)
+    pdf.set_font('Helvetica', '', 10)
+    pdf.set_text_color(31, 41, 55)
+    pdf.cell(0, 6, 'Deepwater Horizon: 3/25 - High Structural Vulnerability', 0, 1)
+    pdf.cell(0, 6, 'Bhopal: 4/25 - High Structural Vulnerability', 0, 1)
+    pdf.cell(0, 6, 'Industry average (estimated): 12/25 - Conditional Stability', 0, 1)
     pdf.ln(6)
 
-    # Disclaimer
+    # --- DISCLAIMER ---
     pdf.set_font('Helvetica', 'I', 9)
-    pdf.multi_cell(0, 5, 'This diagnostic identifies structural conditions. It does not replace '
-                         'a full SIM audit (field interviews, document review, evidence verification). '
-                         'AI may assist; human judgment remains binding.')
+    pdf.set_text_color(75, 85, 99)
+    pdf.multi_cell(0, 5,
+                   'This diagnostic identifies structural conditions. It does not replace '
+                   'a full SIM audit (field interviews, document review, evidence verification). '
+                   'AI may assist; human judgment remains binding.')
     pdf.ln(4)
-    pdf.multi_cell(0, 5, 'AVCS - Adaptive Vector Control System. '
-                         'Charter v1.1 / CORE v2.1 / Code of Ethics v1.1.')
 
-    # fpdf2 output() returns bytes directly
+    pdf.multi_cell(0, 5,
+                   'AVCS - Adaptive Vector Control System. '
+                   'Charter v1.1 / CORE v2.1 / Code of Ethics v1.1 / Code of Practice v1.1.')
+    pdf.ln(4)
+
+    # --- QUOTE ---
+    pdf.set_font('Helvetica', 'I', 10)
+    pdf.set_text_color(30, 58, 138)
+    pdf.multi_cell(0, 6,
+                   '"Continuation without control is a managed risk - not a controlled one."')
+    pdf.set_font('Helvetica', '', 9)
+    pdf.set_text_color(75, 85, 99)
+    pdf.cell(0, 5, '- AVCS CORE v2.1', 0, 1)
+    pdf.ln(6)
+
+    # --- LINKS ---
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 6, 'Full AVCS documentation:', 0, 1)
+    pdf.set_font('Helvetica', '', 9)
+    pdf.set_text_color(31, 41, 55)
+    pdf.multi_cell(0, 5,
+                   'https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs')
+    pdf.ln(2)
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.set_text_color(30, 58, 138)
+    pdf.cell(0, 6, 'System Navigator:', 0, 1)
+    pdf.set_font('Helvetica', '', 9)
+    pdf.set_text_color(31, 41, 55)
+    pdf.multi_cell(0, 5,
+                   'https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/blob/main/docs/System_Navigator.md')
+
     pdf_output = pdf.output()
     return base64.b64encode(pdf_output).decode('latin1')
 
@@ -469,7 +730,7 @@ if not st.session_state.welcome_shown:
             <li>Visual radar chart of five pillars</li>
             <li>Score justification for each pillar</li>
             <li>Benchmarks (Deepwater Horizon, Bhopal)</li>
-            <li>PDF report with recommendations</li>
+            <li>Professional PDF report</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -482,8 +743,8 @@ if not st.session_state.welcome_shown:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.3 - AVCS - Adaptive Vector Control System</p>
-        <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
+        <p>SIM Lite v1.4 - AVCS - Adaptive Vector Control System</p>
+        <p>2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
             Full AVCS documentation
@@ -525,8 +786,8 @@ with st.sidebar:
             st.metric("Drift", st.session_state.scores['drift_detection'])
 
     st.markdown("---")
-    st.caption("SIM Lite v1.3")
-    st.caption("© 2026 Yeruslan Chihachyov")
+    st.caption("SIM Lite v1.4")
+    st.caption("2026 Yeruslan Chihachyov")
     st.caption("CC BY-NC-ND 4.0")
 
 
@@ -722,7 +983,7 @@ elif st.session_state.step == 4:
 
     st.markdown("""
     <div class="info-box">
-        <strong>💡 Controlled degradation vs drift:</strong>
+        <strong>Controlled degradation vs drift:</strong>
         Not every reduction of margin requires an immediate stop.
         The structural difference is whether the reduction is
         <em>declared, owned, documented, and reviewable</em> - or silently normalized.
@@ -970,14 +1231,14 @@ elif st.session_state.step == 6:
     if weak_pillars:
         st.markdown(f"""
         <div class="warning-box">
-            <strong>⚠️ Priority areas:</strong> Your weakest pillars are: {', '.join(weak_pillars)}.
+            <strong>Priority areas:</strong> Your weakest pillars are: {', '.join(weak_pillars)}.
             These represent the highest structural vulnerability.
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("""
     <div class="info-box">
-        <strong>💡 Note:</strong> This diagnostic identifies structural conditions.
+        <strong>Note:</strong> This diagnostic identifies structural conditions.
         A full SIM audit includes field interviews, document review,
         and evidence verification. See the full AVCS documentation for the complete standard.
     </div>
@@ -993,11 +1254,11 @@ elif st.session_state.step == 6:
             total_score,
             st.session_state.justifications
         )
-        href = f'<a href="data:application/octet-stream;base64,{pdf_data}" download="AVCS_SIM_Report.pdf"><button style="background-color: #1e3a8a; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">📥 Download PDF Report</button></a>'
+        href = f'<a href="data:application/octet-stream;base64,{pdf_data}" download="AVCS_SIM_Report.pdf"><button style="background-color: #1e3a8a; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer;">Download PDF Report</button></a>'
         st.markdown(href, unsafe_allow_html=True)
 
     with col2:
-        if st.button("🔄 New Assessment", use_container_width=True):
+        if st.button("New Assessment", use_container_width=True):
             for key in ['step', 'scores', 'answers', 'justifications', 'welcome_shown']:
                 if key in st.session_state:
                     del st.session_state[key]
@@ -1008,7 +1269,7 @@ elif st.session_state.step == 6:
         st.markdown(f'''
         <a href="{linkedin_url}" target="_blank">
             <button style="background-color: #0a66c2; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
-            📞 Request Full Audit
+            Request Full Audit
             </button>
         </a>
         ''', unsafe_allow_html=True)
@@ -1016,8 +1277,8 @@ elif st.session_state.step == 6:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.3 - AVCS - Adaptive Vector Control System</p>
-        <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
+        <p>SIM Lite v1.4 - AVCS - Adaptive Vector Control System</p>
+        <p>2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
             Full AVCS documentation
