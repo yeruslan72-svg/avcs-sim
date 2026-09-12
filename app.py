@@ -2,35 +2,29 @@
 AVCS STRUCTURAL INTEGRITY MODULE (SIM) — LITE
 Diagnostic Instrument for Decision Architecture
 
-Version: 1.4
+Version: 1.4.2
 Companion Documents: Charter v1.1, CORE v2.1, Code of Ethics v1.1,
                     Code of Practice v1.1, SIM v1.1
 License: CC BY-NC-ND 4.0
 
 Changelog:
+v1.4.2:
+- PDF layout fixes:
+  * Radar chart smaller (w=90, y+95) to fit pillar scores
+  * Vulnerability Map: added ln(1) after priority headers
+  * Reinforcement Plan: show all weak pillars (removed [:3] limit)
+  * Evidence Appendix: removed name duplication, added score to header
+  * Benchmarks: added ln(2) after header
+v1.4.1:
+- Fixed FPDFException (Not enough horizontal space)
+- Added pdf.set_x(10) before every multi_cell
+- Merged consecutive multi_cell calls with \n
 v1.4:
-- Professional PDF report:
-  * AVCS logo in header
-  * Radar chart (matplotlib)
-  * Executive Summary
-  * Structural Vulnerability Map
-  * Structural Risk Forecast
-  * Priority Reinforcement Plan
-  * Evidence Appendix
-  * Report ID (unique)
-  * Page numbers (footer on each page)
-  * Color-coded score
-  * AVCS quote (CORE v2.1)
-  * Links to full documentation
+- Professional PDF report (13 elements)
 v1.3:
-- Migrated from fpdf to fpdf2 (Unicode-safe)
-- All em dashes replaced with hyphens
-- pdf.output() used directly
-- Radar chart optimized (height=350, no toolbar)
+- fpdf2 migration, Unicode-safe
 v1.2:
-- 15 → 20 questions
-- 6 reformulated, 5 new
-- Sidebar: Step X of 5
+- 20 questions (was 15)
 """
 
 import streamlit as st
@@ -347,7 +341,7 @@ class AVCSFPDF(FPDF):
         self.set_font('Helvetica', 'I', 8)
         self.set_text_color(138, 138, 138)
         self.cell(0, 10,
-                  f'SIM Lite v1.4 | Page {self.page_no()} | 2026 Yeruslan Chihachyov',
+                  f'SIM Lite v1.4.2 | Page {self.page_no()} | 2026 Yeruslan Chihachyov',
                   0, 0, 'C')
 
 
@@ -418,7 +412,7 @@ def create_radar_image(scores, filename="radar_temp.png"):
 
 
 # ------------------------------
-# PDF report (v1.4.1 — fpdf2 safe)
+# PDF report (v1.4.2)
 # ------------------------------
 def create_pdf(scores, total_score, justifications):
     pdf = AVCSFPDF()
@@ -442,7 +436,7 @@ def create_pdf(scores, total_score, justifications):
     pdf.set_x(10)
     pdf.set_font('Helvetica', 'I', 10)
     pdf.set_text_color(75, 85, 99)
-    pdf.cell(0, 6, 'SIM Lite v1.4 - Adaptive Vector Control System', 0, 1, 'C')
+    pdf.cell(0, 6, 'SIM Lite v1.4.2 - Adaptive Vector Control System', 0, 1, 'C')
     pdf.ln(4)
 
     # --- METADATA ---
@@ -453,7 +447,7 @@ def create_pdf(scores, total_score, justifications):
     pdf.set_x(10)
     pdf.cell(0, 5, f'Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}', 0, 1)
     pdf.set_x(10)
-    pdf.cell(0, 5, 'Assessed by: SIM Lite v1.4 (automated diagnostic)', 0, 1)
+    pdf.cell(0, 5, 'Assessed by: SIM Lite v1.4.2 (automated diagnostic)', 0, 1)
     pdf.ln(6)
 
     # --- SCORE ---
@@ -506,7 +500,7 @@ def create_pdf(scores, total_score, justifications):
         pdf.set_x(10)
         pdf.set_font('Helvetica', 'I', 9)
         pdf.set_text_color(138, 138, 138)
-        pdf.cell(0, 6, f'(Radar chart unavailable)', 0, 1)
+        pdf.cell(0, 6, '(Radar chart unavailable)', 0, 1)
     pdf.ln(4)
 
     # --- PILLAR SCORES ---
@@ -597,16 +591,18 @@ def create_pdf(scores, total_score, justifications):
     pdf.set_text_color(31, 41, 55)
 
     if weak_pillars:
-        for i, (name, score, just) in enumerate(weak_pillars[:3], 1):
+        for i, (name, score, just) in enumerate(weak_pillars, 1):
             pdf.set_x(10)
             pdf.set_font('Helvetica', 'B', 10)
+            pdf.set_text_color(30, 58, 138)
             pdf.cell(0, 6, f'{i}. {name}', 0, 1)
             pdf.set_x(10)
             pdf.set_font('Helvetica', '', 10)
-            pdf.multi_cell(0, 5, f'   Objective: Address weakness (current score: {score}/5).')
+            pdf.set_text_color(31, 41, 55)
+            pdf.multi_cell(0, 5, f'Objective: Address weakness (current score: {score}/5).')
             pdf.set_x(10)
-            pdf.multi_cell(0, 5, f'   Timeline: {30 * i} days.')
-            pdf.ln(2)
+            pdf.multi_cell(0, 5, f'Timeline: {30 * i} days.')
+            pdf.ln(3)
     else:
         pdf.set_x(10)
         pdf.multi_cell(0, 6, 'No priority actions required. Maintain current structural integrity.')
@@ -629,15 +625,14 @@ def create_pdf(scores, total_score, justifications):
         pdf.set_x(10)
         pdf.set_font('Helvetica', 'B', 11)
         pdf.set_text_color(30, 58, 138)
-        pdf.cell(0, 7, f'{name}', 0, 1)
+        pdf.cell(0, 7, f'{name}: {score}/5', 0, 1)
         pdf.set_x(10)
         pdf.set_font('Helvetica', '', 10)
         pdf.set_text_color(31, 41, 55)
         pdf.multi_cell(0, 5,
-                       f'Score: {score}/5\n'
-                       f'Evidence: Self-reported\n'
-                       f'Full audit recommended for evidence verification.')
-        pdf.ln(2)
+                       'Evidence: Self-reported. '
+                       'Full audit recommended for evidence verification.')
+        pdf.ln(3)
 
     # --- BENCHMARKS ---
     pdf.ln(4)
@@ -645,6 +640,7 @@ def create_pdf(scores, total_score, justifications):
     pdf.set_font('Helvetica', 'B', 13)
     pdf.set_text_color(30, 58, 138)
     pdf.cell(0, 10, 'Benchmarks', 0, 1)
+    pdf.ln(2)
     pdf.set_x(10)
     pdf.set_font('Helvetica', '', 10)
     pdf.set_text_color(31, 41, 55)
@@ -790,7 +786,7 @@ if not st.session_state.welcome_shown:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.4 - AVCS - Adaptive Vector Control System</p>
+        <p>SIM Lite v1.4.2 - AVCS - Adaptive Vector Control System</p>
         <p>2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
@@ -833,7 +829,7 @@ with st.sidebar:
             st.metric("Drift", st.session_state.scores['drift_detection'])
 
     st.markdown("---")
-    st.caption("SIM Lite v1.4")
+    st.caption("SIM Lite v1.4.2")
     st.caption("2026 Yeruslan Chihachyov")
     st.caption("CC BY-NC-ND 4.0")
 
@@ -1324,7 +1320,7 @@ elif st.session_state.step == 6:
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
-        <p>SIM Lite v1.4 - AVCS - Adaptive Vector Control System</p>
+        <p>SIM Lite v1.4.2 - AVCS - Adaptive Vector Control System</p>
         <p>2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
         <p>
             <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
