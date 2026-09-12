@@ -3,7 +3,8 @@ AVCS STRUCTURAL INTEGRITY MODULE (SIM) — LITE
 Diagnostic Instrument for Decision Architecture
 
 Version: 1.1
-Companion Documents: Charter v1.1, CORE v2.1, Code of Ethics v1.1, Code of Practice v1.1, SIM v1.1
+Companion Documents: Charter v1.1, CORE v2.1, Code of Ethics v1.1,
+                    Code of Practice v1.1, SIM v1.1
 License: CC BY-NC-ND 4.0
 """
 
@@ -94,23 +95,21 @@ st.markdown("""
         border-left: 4px solid #0ea5e9;
         margin: 10px 0;
     }
+    .welcome-box {
+        background-color: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
 </style>
-""", unsafe_allow_html=True)
-
-# ------------------------------
-# Заголовок
-# ------------------------------
-st.markdown("""
-<div class="main-header">
-    <h1>🧭 AVCS Structural Integrity Module</h1>
-    <p>Diagnosing decision architecture before failure, not after</p>
-</div>
 """, unsafe_allow_html=True)
 
 # ------------------------------
 # Инициализация состояния сессии
 # ------------------------------
 defaults = {
+    'welcome_shown': False,
     'step': 1,
     'scores': {
         'trigger_clarity': 0,
@@ -131,37 +130,6 @@ defaults = {
 for key, value in defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
-
-# ------------------------------
-# Боковая панель с прогрессом
-# ------------------------------
-with st.sidebar:
-    try:
-        st.image("logo.png", width=200)
-    except:
-        st.markdown("### 🧭 AVCS")
-
-    st.markdown("## Progress")
-    progress = (st.session_state.step - 1) / 6
-    st.progress(min(progress, 1.0))
-    st.markdown(f"**Step {st.session_state.step} of 6**")
-
-    if st.session_state.step > 1:
-        st.markdown("---")
-        st.markdown("### Current Scores")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Trigger", st.session_state.scores['trigger_clarity'])
-            st.metric("Ownership", st.session_state.scores['decision_ownership'])
-            st.metric("Intervention", st.session_state.scores['protected_intervention'])
-        with col2:
-            st.metric("Override", st.session_state.scores['override_transparency'])
-            st.metric("Drift", st.session_state.scores['drift_detection'])
-
-    st.markdown("---")
-    st.caption("SIM Lite v1.1")
-    st.caption("© 2026 Yeruslan Chihachyov")
-    st.caption("CC BY-NC-ND 4.0")
 
 # ------------------------------
 # Функции для расчёта скоров
@@ -401,7 +369,6 @@ def create_pdf(scores, total_score, justifications):
     pdf.multi_cell(0, 5, 'AVCS — Adaptive Vector Control System. '
                          'Charter v1.1 / CORE v2.1 / Code of Ethics v1.1.')
 
-    # Сохраняем PDF
     pdf_output = pdf.output(dest='S').encode('latin-1', errors='replace')
     return base64.b64encode(pdf_output).decode('latin1')
 
@@ -410,68 +377,146 @@ def create_pdf(scores, total_score, justifications):
 # Вспомогательные функции
 # ------------------------------
 def save_answers(keys):
-    """Explicitly save answers to session_state.answers."""
     for key in keys:
         if key in st.session_state:
             st.session_state.answers[key] = st.session_state[key]
 
 
 def all_answered(keys):
-    """Check that all answers are present."""
     return all(st.session_state.get(k) is not None for k in keys)
 
 
 # ------------------------------
-# ШАГ 1 — Введение
+# WELCOME SCREEN
+# ------------------------------
+if not st.session_state.welcome_shown:
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col2:
+        # Заставка
+        try:
+            st.image("north_is_not_negotiable.png", use_container_width=True)
+        except:
+            try:
+                st.image("logo.png", use_container_width=True)
+            except:
+                st.markdown("# 🧭 AVCS")
+
+        st.markdown("---")
+
+        # Заголовок
+        st.markdown("""
+        <div style="text-align: center; padding: 20px 0;">
+            <h1 style="color: #1e3a8a; font-size: 40px; margin-bottom: 10px;">
+                AVCS Structural Integrity Module
+            </h1>
+            <p style="color: #4b5563; font-size: 19px; font-style: italic;">
+                Diagnosing decision architecture before failure, not after
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # Ключевая фраза
+        st.markdown("""
+        <div class="welcome-box">
+            <p style="font-size: 18px; line-height: 1.7; color: #1f2937;">
+                <strong>Deepwater Horizon scored 3/25.</strong>
+            </p>
+            <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
+                Not because of engineering failure — because structural decision
+                weaknesses were embedded long before the explosion.
+            </p>
+            <p style="font-size: 16px; line-height: 1.7; color: #4b5563;">
+                Most systems don't fail because people are incompetent.
+                They fail because structural weaknesses remain invisible until it's too late.
+            </p>
+            <p style="font-size: 16px; line-height: 1.7; color: #1e3a8a; font-weight: bold;">
+                SIM makes the invisible visible.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Что вы получите
+        st.markdown("""
+        <div class="info-box">
+            <p style="font-size: 16px; color: #1e3a8a; font-weight: bold; margin-bottom: 10px;">
+                This assessment takes 5–10 minutes. You will receive:
+            </p>
+            <ul style="font-size: 15px; line-height: 1.9; color: #1f2937;">
+                <li>Structural Integrity Score (0–25)</li>
+                <li>Visual radar chart of five pillars</li>
+                <li>Score justification for each pillar</li>
+                <li>Benchmarks (Deepwater Horizon, Bhopal)</li>
+                <li>PDF report with recommendations</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Кнопка
+        col_a, col_b, col_c = st.columns([1, 1, 1])
+        with col_b:
+            if st.button("▸ ENTER DIAGNOSTIC", use_container_width=True, type="primary"):
+                st.session_state.welcome_shown = True
+                st.rerun()
+
+        # Footer
+        st.markdown("---")
+        st.markdown("""
+        <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
+            <p>SIM Lite v1.1 — AVCS — Adaptive Vector Control System</p>
+            <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
+            <p>
+                <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
+                Full AVCS documentation
+                </a>
+                &nbsp;|&nbsp;
+                <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/blob/main/docs/System_Navigator.md" target="_blank">
+                System Navigator
+                </a>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.stop()
+
+# ------------------------------
+# Sidebar (только после Welcome)
+# ------------------------------
+with st.sidebar:
+    try:
+        st.image("logo.png", width=200)
+    except:
+        st.markdown("### 🧭 AVCS")
+
+    st.markdown("## Progress")
+    progress = (st.session_state.step - 1) / 6
+    st.progress(min(progress, 1.0))
+    st.markdown(f"**Step {st.session_state.step} of 6**")
+
+    if st.session_state.step > 1:
+        st.markdown("---")
+        st.markdown("### Current Scores")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Trigger", st.session_state.scores['trigger_clarity'])
+            st.metric("Ownership", st.session_state.scores['decision_ownership'])
+            st.metric("Intervention", st.session_state.scores['protected_intervention'])
+        with col2:
+            st.metric("Override", st.session_state.scores['override_transparency'])
+            st.metric("Drift", st.session_state.scores['drift_detection'])
+
+    st.markdown("---")
+    st.caption("SIM Lite v1.1")
+    st.caption("© 2026 Yeruslan Chihachyov")
+    st.caption("CC BY-NC-ND 4.0")
+
+
+# ------------------------------
+# ШАГ 1 — Trigger Clarity
 # ------------------------------
 if st.session_state.step == 1:
-    st.markdown("""
-    <div class="pillar-card">
-        <h2>Welcome to the AVCS Structural Integrity Module</h2>
-        <p style="font-size: 16px; line-height: 1.6;">
-        This diagnostic tool evaluates your organization's decision architecture across five critical pillars.
-        </p>
-        <p style="font-size: 16px; line-height: 1.6;">
-        <strong>Deepwater Horizon scored 3/25.</strong> Not because of engineering failure,
-        but because structural decision weaknesses were embedded long before the explosion.
-        </p>
-        <p style="font-size: 16px; line-height: 1.6;">
-        The assessment takes 5–10 minutes. You'll receive:
-        </p>
-        <ul style="font-size: 16px; line-height: 1.8;">
-            <li>Structural Integrity Score (0–25)</li>
-            <li>Visual radar chart of your five pillars</li>
-            <li>Score justification for each pillar</li>
-            <li>Benchmarks (Deepwater Horizon, Bhopal)</li>
-            <li>PDF report</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="info-box">
-        <strong>🔒 Confidentiality:</strong> Your answers are not stored on our servers.
-        The PDF is generated locally in your browser session.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div class="info-box">
-        <strong>🤖 AI Notice:</strong> AI may assist with analysis.
-        Human judgment remains binding. The Practitioner remains fully responsible.
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
-        if st.button("Start Assessment →", use_container_width=True):
-            st.session_state.step = 2
-            st.rerun()
-
-# ------------------------------
-# ШАГ 2 — Trigger Clarity
-# ------------------------------
-elif st.session_state.step == 2:
     st.markdown("""
     <div class="pillar-card">
         <h2>1. Trigger Clarity</h2>
@@ -513,13 +558,13 @@ elif st.session_state.step == 2:
                 st.session_state.scores['trigger_clarity'] = calculate_trigger_score(st.session_state.answers)
                 st.session_state.justifications['trigger_clarity'] = justify_trigger(
                     st.session_state.scores['trigger_clarity'], st.session_state.answers)
-                st.session_state.step = 3
+                st.session_state.step = 2
                 st.rerun()
 
 # ------------------------------
-# ШАГ 3 — Decision Ownership
+# ШАГ 2 — Decision Ownership
 # ------------------------------
-elif st.session_state.step == 3:
+elif st.session_state.step == 2:
     st.markdown("""
     <div class="pillar-card">
         <h2>2. Decision Ownership</h2>
@@ -556,7 +601,7 @@ elif st.session_state.step == 3:
             submitted = st.form_submit_button("Next →", use_container_width=True)
 
         if back:
-            st.session_state.step = 2
+            st.session_state.step = 1
             st.rerun()
 
         if submitted:
@@ -567,13 +612,13 @@ elif st.session_state.step == 3:
                 st.session_state.scores['decision_ownership'] = calculate_ownership_score(st.session_state.answers)
                 st.session_state.justifications['decision_ownership'] = justify_ownership(
                     st.session_state.scores['decision_ownership'], st.session_state.answers)
-                st.session_state.step = 4
+                st.session_state.step = 3
                 st.rerun()
 
 # ------------------------------
-# ШАГ 4 — Protected Intervention
+# ШАГ 3 — Protected Intervention
 # ------------------------------
-elif st.session_state.step == 4:
+elif st.session_state.step == 3:
     st.markdown("""
     <div class="pillar-card">
         <h2>3. Protected Intervention</h2>
@@ -610,7 +655,7 @@ elif st.session_state.step == 4:
             submitted = st.form_submit_button("Next →", use_container_width=True)
 
         if back:
-            st.session_state.step = 3
+            st.session_state.step = 2
             st.rerun()
 
         if submitted:
@@ -621,13 +666,13 @@ elif st.session_state.step == 4:
                 st.session_state.scores['protected_intervention'] = calculate_intervention_score(st.session_state.answers)
                 st.session_state.justifications['protected_intervention'] = justify_intervention(
                     st.session_state.scores['protected_intervention'], st.session_state.answers)
-                st.session_state.step = 5
+                st.session_state.step = 4
                 st.rerun()
 
 # ------------------------------
-# ШАГ 5 — Override Transparency
+# ШАГ 4 — Override Transparency
 # ------------------------------
-elif st.session_state.step == 5:
+elif st.session_state.step == 4:
     st.markdown("""
     <div class="pillar-card">
         <h2>4. Override Transparency</h2>
@@ -673,7 +718,7 @@ elif st.session_state.step == 5:
             submitted = st.form_submit_button("Next →", use_container_width=True)
 
         if back:
-            st.session_state.step = 4
+            st.session_state.step = 3
             st.rerun()
 
         if submitted:
@@ -684,13 +729,13 @@ elif st.session_state.step == 5:
                 st.session_state.scores['override_transparency'] = calculate_override_score(st.session_state.answers)
                 st.session_state.justifications['override_transparency'] = justify_override(
                     st.session_state.scores['override_transparency'], st.session_state.answers)
-                st.session_state.step = 6
+                st.session_state.step = 5
                 st.rerun()
 
 # ------------------------------
-# ШАГ 6 — Drift Detection
+# ШАГ 5 — Drift Detection
 # ------------------------------
-elif st.session_state.step == 6:
+elif st.session_state.step == 5:
     st.markdown("""
     <div class="pillar-card">
         <h2>5. Drift Detection</h2>
@@ -727,7 +772,7 @@ elif st.session_state.step == 6:
             submitted = st.form_submit_button("Calculate Results →", use_container_width=True)
 
         if back:
-            st.session_state.step = 5
+            st.session_state.step = 4
             st.rerun()
 
         if submitted:
@@ -738,13 +783,13 @@ elif st.session_state.step == 6:
                 st.session_state.scores['drift_detection'] = calculate_drift_score(st.session_state.answers)
                 st.session_state.justifications['drift_detection'] = justify_drift(
                     st.session_state.scores['drift_detection'], st.session_state.answers)
-                st.session_state.step = 7
+                st.session_state.step = 6
                 st.rerun()
 
 # ------------------------------
-# ШАГ 7 — Результаты
+# ШАГ 6 — Результаты
 # ------------------------------
-elif st.session_state.step == 7:
+elif st.session_state.step == 6:
     total_score = sum(st.session_state.scores.values())
 
     if total_score <= 10:
@@ -858,7 +903,7 @@ elif st.session_state.step == 7:
     <div class="info-box">
         <strong>💡 Note:</strong> This diagnostic identifies structural conditions.
         A full SIM audit includes field interviews, document review,
-        and evidence verification. See <strong>docs/SIM.md</strong> for the full standard.
+        and evidence verification. See the full AVCS documentation for the complete standard.
     </div>
     """, unsafe_allow_html=True)
 
@@ -877,16 +922,34 @@ elif st.session_state.step == 7:
 
     with col2:
         if st.button("🔄 New Assessment", use_container_width=True):
-            for key in ['step', 'scores', 'answers', 'justifications']:
+            for key in ['step', 'scores', 'answers', 'justifications', 'welcome_shown']:
                 if key in st.session_state:
                     del st.session_state[key]
             st.rerun()
 
     with col3:
-        st.markdown("""
-        <a href="https://www.linkedin.com/in/yeruslan-chihachyov-70a807126" target="_blank">
-                        <button style="background-color: #0a66c2; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
+        linkedin_url = "https://www.linkedin.com/in/yeruslan-chihachyov-70a807126"
+        st.markdown(f'''
+        <a href="{linkedin_url}" target="_blank">
+            <button style="background-color: #0a66c2; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">
             📞 Request Full Audit
             </button>
         </a>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; color: #8a8a8a; font-size: 13px; padding: 10px 0;">
+        <p>SIM Lite v1.1 — AVCS — Adaptive Vector Control System</p>
+        <p>© 2026 Yeruslan Chihachyov | CC BY-NC-ND 4.0</p>
+        <p>
+            <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/tree/main/docs" target="_blank">
+            Full AVCS documentation
+            </a>
+            &nbsp;|&nbsp;
+            <a href="https://github.com/yeruslan72-svg/AVCS-VIRTUAL-COMPANY/blob/main/docs/System_Navigator.md" target="_blank">
+            System Navigator
+            </a>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
