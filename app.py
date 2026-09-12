@@ -560,11 +560,12 @@ def create_pdf(scores, total_score, justifications):
             pdf.set_font('Helvetica', 'B', 11)
             pdf.set_text_color(220, 38, 38)
             pdf.cell(0, 7, f'Priority {i}: {name} ({score}/5)', 0, 1)
+            pdf.ln(1)
             pdf.set_x(10)
             pdf.set_font('Helvetica', '', 10)
             pdf.set_text_color(31, 41, 55)
             pdf.multi_cell(0, 5, just)
-            pdf.ln(2)
+            pdf.ln(3)
 
     # --- RISK FORECAST ---
     pdf.ln(4)
